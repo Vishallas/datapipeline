@@ -1,6 +1,7 @@
 package org.example;
 import org.apache.kafka.clients.producer.*;
 
+import java.util.Properties;
 import java.util.Random;
 
 class RandomStringGenerator {
@@ -15,7 +16,6 @@ class RandomStringGenerator {
             int index = random.nextInt(CHARACTERS.length());
             sb.append(CHARACTERS.charAt(index));
         }
-
         return sb.toString();
     }
 }
@@ -24,11 +24,10 @@ public class ProducerUtil implements Runnable {
 
     private final KafkaProducer<Integer, String> producer;
     private final String topicName;
-    private int key;
+    private final int key;
 
-//    private static final Logger logger = LogManager.getLogger(Dispatcher.class);
-    ProducerUtil(KafkaProducer<Integer, String> producer, String topicName, int key) {
-        this.producer = producer;
+    ProducerUtil(Properties prop, String topicName, int key) {
+        this.producer = new KafkaProducer<>(prop);
         this.topicName = topicName;
         this.key = key;
     }

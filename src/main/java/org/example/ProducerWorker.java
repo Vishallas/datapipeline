@@ -9,12 +9,12 @@ import org.apache.kafka.clients.producer.*;
 
 import java.util.Properties;
 
-public class Producer {
+public class ProducerWorker {
     static final int THREAD_COUNT = 5;
     static final String TOPIC = "hadoop_data";
 
     public static void main(String[] args) {
-        final Logger log = LoggerFactory.getLogger(org.apache.kafka.clients.producer.Producer.class);
+        final Logger log = LoggerFactory.getLogger(Producer.class);
         log.info("Logger initialized");
 
         Properties prop = new Properties();
@@ -22,11 +22,11 @@ public class Producer {
         prop.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class.getName());
         prop.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 
-        final KafkaProducer<Integer, String> producer = new KafkaProducer<>(prop);
+//        final KafkaProducer<Integer, String> producer = new KafkaProducer<>(prop);
 
         Thread[] threads = new Thread[THREAD_COUNT];
         for (int i = 0; i < THREAD_COUNT; i++) {
-            threads[i] = new Thread(new ProducerUtil(producer,TOPIC, i));
+            threads[i] = new Thread(new ProducerUtil(prop,TOPIC, i));
             log.info("[ ] Thread " + i + " Created.");
             threads[i].start();
             log.info("[ ] Thread " + i + " Started.");
@@ -39,7 +39,6 @@ public class Producer {
             log.error("Exception : ", e);
         } finally {
             log.info("Closing Producer");
-            producer.close();
         }
     }
 }
