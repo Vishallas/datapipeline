@@ -1,0 +1,18 @@
+#Zookeeper
+
+cd /usr/local/kafka
+bin/zookeeper-server-start.sh config/zookeeper.properties
+
+#server
+cd /usr/local/kafka
+bin/kafka-server-start.sh config/server.properties
+
+#create topic
+cd /usr/local/kafka
+bin/kafka-topics.sh --bootstrap-server localhost:9092 --topic hadoop_data --create --partitions 5
+
+#listen to the topic
+bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic hadoop_data --group cg1
+
+#removing stuffs
+rm -rf /tmp/kafka-logs /tmp/zookeeper /tmp/kraft-combined-logs
