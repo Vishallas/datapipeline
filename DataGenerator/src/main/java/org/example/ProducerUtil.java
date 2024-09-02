@@ -1,8 +1,10 @@
 package org.example;
 import org.apache.kafka.clients.producer.*;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.Properties;
-import java.util.Random;
+import java.util.Random;;
 
 class RandomStringGenerator {
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -34,6 +36,7 @@ public class ProducerUtil implements Runnable {
 
     @Override
     public void run() {
+        Logger log = LoggerFactory.getLogger(ProducerUtil.class);
         try {
             while (true) {
                 Thread.sleep(2000);
@@ -42,6 +45,7 @@ public class ProducerUtil implements Runnable {
                 producer.send(producerRecord);
             }
         } catch (Exception e) {
+            log.error("Error occured ", e);
             throw new RuntimeException(e);
         }
     }

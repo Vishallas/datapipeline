@@ -9,20 +9,18 @@ import org.apache.kafka.clients.producer.*;
 
 import java.util.Properties;
 
-public class ProducerWorker {
+public class Main {
     static final int THREAD_COUNT = 5;
     static final String TOPIC = "hadoop_data";
 
     public static void main(String[] args) {
-        final Logger log = LoggerFactory.getLogger(Producer.class);
+        final Logger log = LoggerFactory.getLogger(Main.class);
         log.info("Logger initialized");
 
         Properties prop = new Properties();
         prop.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         prop.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class.getName());
         prop.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-
-//        final KafkaProducer<Integer, String> producer = new KafkaProducer<>(prop);
 
         Thread[] threads = new Thread[THREAD_COUNT];
         for (int i = 0; i < THREAD_COUNT; i++) {
