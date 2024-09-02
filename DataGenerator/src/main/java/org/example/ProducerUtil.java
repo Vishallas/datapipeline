@@ -1,48 +1,67 @@
 package org.example;
 import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.serialization.VoidSerializer;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
-import java.util.Properties;
-import java.util.Random;;
+import org.json.JSONObject;
+
+import java.util.*;
 
 class RandomStringGenerator {
-    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    private static final int STRING_LENGTH = 10; // Length of the generated string
+    public static String getData(){
 
-    public static String generateRandomString() {
-        Random random = new Random();
-        StringBuilder sb = new StringBuilder(STRING_LENGTH);
+        // Data Formate and order
 
-        for (int i = 0; i < STRING_LENGTH; i++) {
-            int index = random.nextInt(CHARACTERS.length());
-            sb.append(CHARACTERS.charAt(index));
-        }
-        return sb.toString();
+        //    uuid | visits | sid | eventtime | uvid | ip | user_agent | pageurl_trim
+
+
+        JSONObject data = new JSONObject();
+
+        data.put("uuid","000028e1-3e58-498a-8f4e-67a3fa7dbe89_d587"); // UUID
+        data.put("visits",1); // Visit Count
+        data.put("sid","-8.96494E+018");
+        data.put("eventtime","2024-08-31 00:42:48"); // Event Time
+        data.put("uvid","cb07f9bd-8dc1-4096-a657-6f19008f2174-2"); //UVID
+        data.put("ip","182.65.217.47"); //IP
+        data.put("user_agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36");
+        data.put("pageurl_trim","zoho.com/mail/"); //pageurl_trim
+
+        return data.toString();
+
     }
 }
 
 public class ProducerUtil implements Runnable {
-
-    private final KafkaProducer<Integer, String> producer;
-    private final String topicName;
-    private final int key;
-
-    ProducerUtil(Properties prop, String topicName, int key) {
-        this.producer = new KafkaProducer<>(prop);
-        this.topicName = topicName;
+    final String topicName = "hadoop_data";
+    final int key;
+    ProducerUtil (int key){
         this.key = key;
     }
 
     @Override
     public void run() {
+        Properties prop = new Properties();
+        prop.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
+        prop.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        prop.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+
         Logger log = LoggerFactory.getLogger(ProducerUtil.class);
-        try {
+        try(KafkaProducer<Void, String> producer = new KafkaProducer<>(prop)) {
             while (true) {
                 Thread.sleep(2000);
-                String data = RandomStringGenerator.generateRandomString();
-                ProducerRecord<Integer, String> producerRecord = new ProducerRecord<Integer, String>(topicName, key, data+" " +key);
-                producer.send(producerRecord);
+                String data = RandomStringGenerator.getData();
+
+                ProducerRecord<Void, String> producerRecord = new ProducerRecord<>(topicName, key, null,data);
+                producer.send(producerRecord, (recordMetadata, e) ->
+                        log.info("Published to " + recordMetadata.topic()
+                                + ", Key " + key
+                                + ", Partition " + recordMetadata.partition()
+                                + ", timestamp " + recordMetadata.timestamp()
+                        )
+                );
             }
         } catch (Exception e) {
             log.error("Error occured ", e);
@@ -50,4 +69,3 @@ public class ProducerUtil implements Runnable {
         }
     }
 }
-
