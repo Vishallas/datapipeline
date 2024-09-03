@@ -9,6 +9,8 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Properties;
 
 import redis.clients.jedis.Jedis;
@@ -35,7 +37,7 @@ class ConsumerUtil implements Runnable{
 
         this.consumer = new KafkaConsumer<>(props);
 
-        this.consumer.subscribe(Arrays.asList(topic));
+        this.consumer.subscribe(Collections.singletonList(topic)); // Using immutable array
     }
 
     public void run(){
