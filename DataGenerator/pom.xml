@@ -39,6 +39,18 @@
             <version>3.4.0</version>
         </dependency>
 
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/io.whitfin/siphash &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>io.whitfin</groupId>-->
+<!--            <artifactId>siphash</artifactId>-->
+<!--            <version>2.0.0</version>-->
+<!--        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/org.apache.commons.codec -->
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.15</version>
+        </dependency>
 
     </dependencies>
 
