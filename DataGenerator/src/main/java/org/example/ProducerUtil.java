@@ -118,7 +118,7 @@ class RandomStringGenerator {
         // Generate each of the 4 octets
         int firstOctet = 180;
         int secondOctet = 0;
-        int thirdOctet = random.nextInt(256); // 0 - 255
+        int thirdOctet = 1; //random.nextInt(256);
         int fourthOctet = random.nextInt(256); // 0 - 255
 
         return String.format("%d.%d.%d.%d", firstOctet, secondOctet, thirdOctet, fourthOctet);
@@ -138,23 +138,15 @@ class RandomStringGenerator {
         return formatter.format(currentTime.atZone(zoneId));
     }
 
-    public String getBatch(){
-        int BATCH_SIZE = 30;
-        JSONArray jsonArray = new JSONArray();
+    public EventSchema getEvent(){
 
-        String ip = ipGenerator();
-        String userAgent = randUserAgent();
+        EventSchema eventObj = new EventSchema();
+        eventObj.setIp(ipGenerator()); //IP
+        eventObj.setUserAgent(randUserAgent()); // user agent
+        eventObj.setUrl(randUrl()); // event url
+        eventObj.setEventTime(getTime()); // sequence time
 
-        for(int i = 0;i<BATCH_SIZE;i++){
-            JSONObject jobj = new JSONObject();
-            jobj.put("ip",ip); //IP
-            jobj.put("user_agent", userAgent);
-            jobj.put("pageurl_trim","zoho.com/mail/");
-            jobj.put("eventtime",getTime());
-            jsonArray.put(jobj);
-        }
-
-        return jsonArray.toString();
+        return eventObj;
     }
 }
 
@@ -173,13 +165,13 @@ public class ProducerUtil implements Runnable {
             Properties prop = new Properties();
             prop.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
             prop.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-            prop.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-            try (KafkaProducer<Void, String> producer = new KafkaProducer<>(prop)) {
+            prop.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, CustomAvroSerializer.class.getName());
+            try (KafkaProducer<Void, EventSchema> producer = new KafkaProducer<>(prop)) {
                 while (true) {
                     Thread.sleep(2000);
-                    String data = randGent.getBatch();
+                    EventSchema eventData = randGent.getEvent();
 
-                    ProducerRecord<Void, String> producerRecord = new ProducerRecord<>(topicName, partition, null, data);
+                    ProducerRecord<Void, EventSchema> producerRecord = new ProducerRecord<>(topicName, partition, null, eventData);
                     producer.send(producerRecord, (recordMetadata, e) ->
                             log.info("Published to " + recordMetadata.topic()
                                     + ", Key " + null

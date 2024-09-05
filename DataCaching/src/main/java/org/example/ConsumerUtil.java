@@ -1,7 +1,5 @@
 package org.example;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;

@@ -6,10 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="b4ec1408-39e9-49b6-9d26-605138094ada" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataCaching/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/ConsumerUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/ConsumerUtil.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataProcessor/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataProcessor/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/src/main/java/org/example/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,7 +29,9 @@
   &quot;associatedIndex&quot;: 3
 }</component>
   <component name="ProjectId" id="2lV8a2Wl5AdKhoQL3aC7T75mlPA" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -40,14 +41,14 @@
     "Application.Main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "cache-feat",
+    "git-widget-placeholder": "feat/avro",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataCaching",
+    "last_opened_file_path": "/home/vishal-pt7653/Downloads/kafka-avro-serializer-7.6.1.jar",
     "onboarding.tips.debug.path": "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataGenerator/src/main/java/org/example/Main.java",
     "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "project.propVCSSupport.Mappings"
   }
 }]]></component>
   <component name="RecentsManager">
