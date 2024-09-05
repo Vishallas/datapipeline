@@ -1,5 +1,7 @@
 package org.example;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -8,11 +10,11 @@ import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Properties;
 
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import redis.clients.jedis.Jedis;
 
 class ConsumerUtil implements Runnable{
@@ -24,8 +26,6 @@ class ConsumerUtil implements Runnable{
 
         final String GROUP_ID = "hadoop_data_group_1";
         final String KAFKA_BOOTSTRAP_SERVERS = "localhost:29092,localhost:39092";
-
-
 
         // Property Initialization
         Properties props = new Properties();
@@ -49,7 +49,8 @@ class ConsumerUtil implements Runnable{
             while (true) {
                 ConsumerRecords<Integer, String> records = consumer.poll(Duration.ofMillis(200));
                 for (ConsumerRecord<Integer, String> record : records) {
-                    jedis.lpush("HadoopCache", record.value());
+                    JSONObject json = new JSONObject(new JSONTokener(record.toString()));
+
                 }
 //                break;
             }

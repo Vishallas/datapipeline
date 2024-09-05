@@ -13,6 +13,7 @@ public class Main {
         final Logger log = LoggerFactory.getLogger(Main.class);
         log.info("Logger initialized");
 
+
 //        System.out.println(ipGenerator());
 //        Thread[] threads = new Thread[THREAD_COUNT];
 //        for (int i = 0; i < THREAD_COUNT; i++) {

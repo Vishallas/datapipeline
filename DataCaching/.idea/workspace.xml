@@ -6,9 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="5eb55cf2-eeb7-42d2-9fc9-d85fb3f6a6f7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../DataGenerator/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataGenerator/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/ProducerUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/ProducerUtil.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataProcessor/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataProcessor/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/src/main/java/org/example/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,7 +41,7 @@
     &quot;Application.Main.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;seperated&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;cache-feat&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataCaching&quot;,
     &quot;onboarding.tips.debug.path&quot;: &quot;/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataCaching/src/main/java/org/example/Main.java&quot;

@@ -1,0 +1,24 @@
+{
+  "namespace": "org.example",
+  "type": "record",
+  "name": "EventSchema",
+  "fields": [
+    {
+      "name": "ip",
+      "type": "string"
+    },
+    {
+      "name": "user_agent",
+      "type": "string"
+    },
+    {
+      "name": "url",
+      "type": "string"
+    },
+    {
+      "name": "event_time",
+      "type": "string"
+    }
+
+  ]
+}

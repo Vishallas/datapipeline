@@ -1,16 +1,19 @@
 package org.example;
 
+import com.google.gson.JsonObject;
+import org.json.JSONArray;
 import org.json.JSONObject;
-import org.json.JSONString;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
+import redis.clients.jedis.resps.ScanResult;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
@@ -26,10 +29,7 @@ public class Main {
         try(Jedis jedis = new Jedis(REDIS_ADDRESS, REDIS_PORT)) {
             Transaction transaction = jedis.multi();
             Response<Long> countResponse = transaction.llen(REDIS_KEY);
-            // To do the max size of 2^32;
-//            Response<List<String>> dataResponse = transaction.rpop(REDIS_KEY,  countResponse.get().intValue());
             Response<List<String>> dataResponse = transaction.rpop(REDIS_KEY, countResponse.get().intValue());
-
             transaction.exec();
 
             List<String> data = dataResponse.get();
@@ -55,16 +55,33 @@ public class Main {
         }
     }
 
-    private static List<String> valueFetcher(){
-        try(Jedis jedis = new Jedis(REDIS_ADDRESS, 6379)){
-            long l = jedis.llen(REDIS_KEY);
-            List<String> data = jedis.rpop(REDIS_KEY, (int)l);
-//            data.forEach(log::info);
-            log.info("Data received LEN : {}", data.size());
-            return data;
-        }catch (Exception e){
-            log.error("Error fetching KEY : "+ REDIS_KEY, e);
-            return null;
+    private static void updateString(JsonObject jsonObject){
+        // if data found increment the count
+        // if data not found set the first and last visit time to same
+
+    }
+
+    private static void processData(Jedis jedis, Set<String> keys) {
+        keys.forEach((key)->{
+
+            int lent = (int)(jedis.llen(key));
+            List<String> jsonStringArray = jedis.rpop(key, lent);
+            JSONArray jsonArray =  new JSONArray(jsonStringArray);
+            if (jsonArray.length() == 1){
+
+            }
+        });
+    }
+
+    private static void getKeys() {
+        try (Jedis jedis = new Jedis(REDIS_ADDRESS, 6379)) {
+//            ScanResult<String> rs = jedis.scan("user:*");
+            Set<String> keys = jedis.keys("UUID:");
+//            processData(jedis, keys);
+//            System.out.println(rs.getResult());
+        } catch (Exception e) {
+            log.error("Error fetching KEY : " + REDIS_KEY, e);
+
         }
     }
 
@@ -75,16 +92,17 @@ public class Main {
         });
     }
     public static void main(String[] args) {
-
-
+//        Logger log = LoggerFactory.getLogger(Main.class);
+        getKeys();
         try {
             while (true) {
-                List<String> data = valueFetcher();
+                List<String> data = null;
+//                getKeys();
                 if (data != null) {
                     // Campare data;
                     log.info("Processing Data");
                 }
-                dataGenerator();
+//                dataGenerator();
                 try {
                     log.info("Waiting for {} ms", WAIT_TIME_MS);
                     Thread.sleep(WAIT_TIME_MS);

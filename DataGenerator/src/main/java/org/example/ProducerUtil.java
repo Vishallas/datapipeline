@@ -1,6 +1,4 @@
 package org.example;
-//import io.whitfin.siphash.SipHasher;
-//import org.apache.commons.codec.digest.MurmurHash3;
 
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
