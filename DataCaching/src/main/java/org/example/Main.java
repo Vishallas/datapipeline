@@ -2,14 +2,19 @@ package org.example;
 
 
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.DatumWriter;
+import org.apache.avro.io.Encoder;
+import org.apache.avro.io.EncoderFactory;
+import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import redis.clients.jedis.Jedis;
 
-//import redis.clients.jedis.Jedis;
-
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -38,6 +43,16 @@ public class Main {
 
         return (new UUID(mostSigBits, leastSigBits)).toString();
     }
+    private static byte[] avroEncode(GenericRecord event) throws IOException {
+        // Serialize the record to a byte array
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        DatumWriter<GenericRecord> datumWriter = new SpecificDatumWriter<>(EventSchema.getClassSchema());
+        Encoder encoder = EncoderFactory.get().binaryEncoder(outputStream, null);
+        datumWriter.write(event, encoder);
+        encoder.flush();
+        outputStream.close();
+        return outputStream.toByteArray();
+    }
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
 
@@ -56,7 +71,12 @@ public class Main {
 
         MessageDigest md = MessageDigest.getInstance("md5");
 
-        try( KafkaConsumer<Void, EventSchema> consumer = new KafkaConsumer<>(props)) {
+        final String REDIS_ADDR = "localhost";
+        final int REDIS_PORT = 6379;
+
+        try( KafkaConsumer<Void, EventSchema> consumer = new KafkaConsumer<>(props);
+             Jedis jedis = new Jedis(REDIS_ADDR, REDIS_PORT);) {
+
 
             while (true) {
                 consumer.subscribe(Collections.singletonList(TOPIC));
@@ -64,21 +84,28 @@ public class Main {
                 ConsumerRecords<Void, EventSchema> records = consumer.poll(Duration.ofMillis(200));
                 for (ConsumerRecord<Void, EventSchema> record : records) {
                     GenericRecord event = record.value();
-                    System.out.println("UUID : " + md5UUID(md,event.get("ip").toString(), event.get("user_agent").toString())+ "IP : " +  event.get("ip") + " Event Time : "+ event.get("event_time").toString());
+                    String uuid = md5UUID(md,event.get("ip").toString(), event.get("user_agent").toString());
+                    Map<String,String> userSession = jedis.hgetAll(uuid);
+
+                    if(userSession != null){
+                        if(sessionTimeOut(userSession.get("last_event"), event.get("event_time"))){
+                            userSession.put("visit_count", incr(userSession.get("visit_count")));
+                            userSession.put("last_event", event.get("event_time").toString());
+                            jedis.hset(uuid, userSession);
+                        }else {
+                            userSession = new HashMap<String, String>() {{
+                                put("uuid", uuid);
+                                put("visit_count", "1");
+                                put("last_visit", event.get("event_time").toString());
+                                put("first_event", event.get("event_time").toString());
+                                put("url", event.get("url").toString());
+                            }};
+                            jedis.hset(uuid, userSession);
+                        }
+                    }
+                    jedis.lpush(avroEncode(event));
                 }
             }
-
-//            final String REDIS_ADDR = "localhost";
-//            final int REDIS_PORT = 6379;
-//
-//            try (Jedis jedis = new Jedis(REDIS_ADDR, REDIS_PORT)) {
-//                while (true) {
-//                    ConsumerRecords<Void, EventSchema> records = consumer.poll(Duration.ofMillis(200));
-//                    for (ConsumerRecord<Void, EventSchema> record : records) {
-//                        String uuid =
-//                    }
-//                }
-//            }
 
         } catch (Exception e) {
             e.printStackTrace();

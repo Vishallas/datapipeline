@@ -6,8 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="b4ec1408-39e9-49b6-9d26-605138094ada" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataCaching/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/ConsumerUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/ConsumerUtil.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -48,6 +46,7 @@
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
     "settings.editor.selected.configurable": "project.propVCSSupport.Mappings"
   }
 }]]></component>

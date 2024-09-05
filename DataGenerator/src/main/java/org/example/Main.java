@@ -1,21 +1,23 @@
 package org.example;
 
+import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.*;
 import org.apache.avro.specific.SpecificDatumReader;
-
-import java.io.*;
-import java.security.NoSuchAlgorithmException;
-import java.util.Properties;
-
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.DatumWriter;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
+import java.util.Properties;
 
 public class Main {
     static final int THREAD_COUNT = 5;
@@ -25,7 +27,7 @@ public class Main {
     private static void testAvro() throws IOException, NoSuchAlgorithmException {
         // Load the Avro schema from a local file
         RandomStringGenerator rd = new RandomStringGenerator();
-        EventSchema user = rd.getEvent();
+        EventSchema user = rd.getAvroEvent();
 
         // Serialize the record to a byte array
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -37,7 +39,6 @@ public class Main {
 
         // Get serialized data
         byte[] serializedData = outputStream.toByteArray();
-        System.out.println("Serialized data: " + serializedData +" " + serializedData.length);
 
         // Deserialize the record from a byte array
         InputStream inputStream = new ByteArrayInputStream(serializedData);
@@ -47,48 +48,51 @@ public class Main {
         inputStream.close();
 
         // Print the deserialized record
-        System.out.println("Deserialized record: " + user + " " + user.toString().length());
+        System.out.println("Serialized data: " + serializedData +" " + serializedData.length);
+        System.out.println("Deserialized record: " + user);
+        JSONObject json = rd.getJsonEvent(user);
+        System.out.println("JsonObject String : " + json.toString() + " Length : " + json.toString().length());
 
     }
 
     public static void main(String[] args) throws  Exception{
         final String AVRO_SCHEMA_PATH = "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataGenerator/src/main/avro/EventSchema.avsc";
-        testAvro();
-//        final String topicName = "hadoop_data";
-//
-//        final Logger log = LoggerFactory.getLogger(Main.class);
-//        log.info("Logger initialized");
-//
-//        try {
-//            RandomStringGenerator randGent = new RandomStringGenerator();
-//
-//            Properties prop = new Properties();
-//            prop.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
-//            prop.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-//            prop.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, CustomAvroSerializer.class.getName());
-//            prop.setProperty("avro.schema.path", AVRO_SCHEMA_PATH);
-//
-//
-//            try (KafkaProducer<Void, EventSchema> producer = new KafkaProducer<>(prop)) {
-//                while (true) {
-//                    Thread.sleep(200);
-//                    EventSchema eventData = randGent.getEvent();
-//
-//                    ProducerRecord<Void, EventSchema> producerRecord = new ProducerRecord<>(topicName,null, eventData);
-//                    producer.send(producerRecord, (recordMetadata, e) ->
-//                            log.info("Published to " + recordMetadata.topic()
-//                                    + ", Key " + null
-//                                    + ", Partition " + recordMetadata.partition()
-//                                    + ", timestamp " + recordMetadata.timestamp()
-//                            )
-//                    );
-//                }
-//            } catch (Exception e) {
-//                log.error("Error occured ", e);
-//            }
-//        }catch (Exception e){
-//            log.error("Error Generated", e);
-//        }
+//        testAvro();
+        final String topicName = "hadoop_data";
+
+        final Logger log = LoggerFactory.getLogger(Main.class);
+        log.info("Logger initialized");
+
+        try {
+            RandomStringGenerator randGent = new RandomStringGenerator();
+
+            Properties prop = new Properties();
+            prop.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
+            prop.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+            prop.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, CustomAvroSerializer.class.getName());
+            prop.setProperty("avro.schema.path", AVRO_SCHEMA_PATH);
+
+
+            try (KafkaProducer<Void, EventSchema> producer = new KafkaProducer<>(prop)) {
+                while (true) {
+                    Thread.sleep(200);
+                    EventSchema eventData = randGent.getAvroEvent();
+
+                    ProducerRecord<Void, EventSchema> producerRecord = new ProducerRecord<>(topicName,null, eventData);
+                    producer.send(producerRecord, (recordMetadata, e) ->
+                            log.info("Published to " + recordMetadata.topic()
+                                    + ", Key " + null
+                                    + ", Partition " + recordMetadata.partition()
+                                    + ", timestamp " + recordMetadata.timestamp()
+                            )
+                    );
+                }
+            } catch (Exception e) {
+                log.error("Error occured ", e);
+            }
+        }catch (Exception e){
+            log.error("Error Generated", e);
+        }
 
 
     }

@@ -2,7 +2,6 @@ package org.example;
 
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.json.JSONArray;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -14,6 +13,8 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+
+
 
 class RandomStringGenerator {
     private final MessageDigest md;
@@ -138,7 +139,7 @@ class RandomStringGenerator {
         return formatter.format(currentTime.atZone(zoneId));
     }
 
-    public EventSchema getEvent(){
+    public EventSchema getAvroEvent(){
 
         EventSchema eventObj = new EventSchema();
         eventObj.setIp(ipGenerator()); //IP
@@ -147,6 +148,15 @@ class RandomStringGenerator {
         eventObj.setEventTime(getTime()); // sequence time
 
         return eventObj;
+    }
+
+    public JSONObject getJsonEvent(EventSchema eventSchema){
+        JSONObject json = new JSONObject();
+        json.put("ip", eventSchema.getIp());
+        json.put("user_agent", eventSchema.getUserAgent());
+        json.put("event_time", eventSchema.getEventTime());
+        json.put("url", eventSchema.getUrl());
+        return json;
     }
 }
 
@@ -169,7 +179,7 @@ public class ProducerUtil implements Runnable {
             try (KafkaProducer<Void, EventSchema> producer = new KafkaProducer<>(prop)) {
                 while (true) {
                     Thread.sleep(2000);
-                    EventSchema eventData = randGent.getEvent();
+                    EventSchema eventData = randGent.getAvroEvent();
 
                     ProducerRecord<Void, EventSchema> producerRecord = new ProducerRecord<>(topicName, partition, null, eventData);
                     producer.send(producerRecord, (recordMetadata, e) ->
