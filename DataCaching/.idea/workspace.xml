@@ -6,11 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="5eb55cf2-eeb7-42d2-9fc9-d85fb3f6a6f7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../DataGenerator/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataGenerator/.~lock.output.txt#" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/EventSchema.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/EventSchemaV1.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/DataProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/DataProcessor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/ProducerUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/ProducerUtil.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataProcessor/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
