@@ -27,11 +27,17 @@ public class Main {
     private static void testAvro() throws IOException, NoSuchAlgorithmException {
         // Load the Avro schema from a local file
         RandomStringGenerator rd = new RandomStringGenerator();
-        EventSchema user = rd.getAvroEvent();
+
+//        EventSchema user = rd.getAvroEvent();
+        EventSchemaV1 user = rd.getAvroEventV1(10000);
+
 
         // Serialize the record to a byte array
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        DatumWriter<GenericRecord> datumWriter = new SpecificDatumWriter<>(EventSchema.getClassSchema());
+
+//        DatumWriter<GenericRecord> datumWriter = new SpecificDatumWriter<>(EventSchema.getClassSchema());
+        DatumWriter<GenericRecord> datumWriter = new SpecificDatumWriter<>(EventSchemaV1.getClassSchema());
+
         Encoder encoder = EncoderFactory.get().binaryEncoder(outputStream, null);
         datumWriter.write(user, encoder);
         encoder.flush();
@@ -42,23 +48,30 @@ public class Main {
 
         // Deserialize the record from a byte array
         InputStream inputStream = new ByteArrayInputStream(serializedData);
-        DatumReader<GenericRecord> datumReader = new SpecificDatumReader<>(EventSchema.getClassSchema());
+
+//        DatumReader<GenericRecord> datumReader = new SpecificDatumReader<>(EventSchema.getClassSchema());
+        DatumReader<GenericRecord> datumReader = new SpecificDatumReader<>(EventSchemaV1.getClassSchema());
+
         Decoder decoder = DecoderFactory.get().binaryDecoder(inputStream, null);
         GenericRecord users = datumReader.read(null, decoder);
         inputStream.close();
 
         // Print the deserialized record
-        System.out.println("Serialized data: " + serializedData +" " + serializedData.length);
-        System.out.println("Deserialized record: " + user);
+//        System.out.println("Serialized data: " + serializedData );
+        System.out.println("Avro data Length : " + serializedData.length);
+//        System.out.println("Deserialized record: " + users);
         JSONObject json = rd.getJsonEvent(user);
-        System.out.println("JsonObject String : " + json.toString() + " Length : " + json.toString().length());
-
+        System.out.println("JsonObject String : " + json.toString());
+        System.out.println("Json string Length : " + json.toString().length());
+    }
+    private static void createFile() throws NoSuchAlgorithmException, IOException {
+        RandomStringGenerator rd = new RandomStringGenerator();
+        rd.createFile();
     }
 
-    public static void main(String[] args) throws  Exception{
-        final String AVRO_SCHEMA_PATH = "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataGenerator/src/main/avro/EventSchema.avsc";
-//        testAvro();
+    private static void produceData(){
         final String topicName = "hadoop_data";
+        final String AVRO_SCHEMA_PATH = "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataGenerator/src/main/avro/EventSchemaV1.avsc";
 
         final Logger log = LoggerFactory.getLogger(Main.class);
         log.info("Logger initialized");
@@ -93,7 +106,12 @@ public class Main {
         }catch (Exception e){
             log.error("Error Generated", e);
         }
+    }
 
+    public static void main(String[] args) throws  Exception{
+        //testAvro();
+        createFile();
+        //produceData();
 
     }
 }

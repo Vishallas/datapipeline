@@ -7,6 +7,9 @@
     <list default="true" id="b4ec1408-39e9-49b6-9d26-605138094ada" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataProcessor/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataProcessor/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataProcessor/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/src/main/java/org/example/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,21 +40,27 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.Main.executor": "Run",
+    "Maven.DataGenerator [compile].executor": "Run",
+    "Maven.DataGenerator [package].executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "feat/avro",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/vishal-pt7653/Downloads/kafka-avro-serializer-7.6.1.jar",
+    "last_opened_file_path": "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataGenerator/src/main/java/org/example",
     "onboarding.tips.debug.path": "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataGenerator/src/main/java/org/example/Main.java",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "project.propVCSSupport.Mappings"
+    "settings.editor.selected.configurable": "build.tools"
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/java/org/example" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/src/main/avro" />
       <recent name="$PROJECT_DIR$/src" />
     </key>

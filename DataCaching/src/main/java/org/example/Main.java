@@ -10,8 +10,10 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Transaction;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -66,6 +68,7 @@ public class Main {
         props.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, CustomAvroDeserializer.class.getName());
         props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
+        props.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
         props.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.setProperty("avro.schema.path", AVRO_SCHEMA_PATH);
 
@@ -82,16 +85,17 @@ public class Main {
                 consumer.subscribe(Collections.singletonList(TOPIC));
                 Thread.sleep(1000);
                 ConsumerRecords<Void, EventSchema> records = consumer.poll(Duration.ofMillis(200));
+
                 for (ConsumerRecord<Void, EventSchema> record : records) {
                     GenericRecord event = record.value();
                     String uuid = md5UUID(md,event.get("ip").toString(), event.get("user_agent").toString());
+                    jedis.watch(uuid);
                     Map<String,String> userSession = jedis.hgetAll(uuid);
 
                     if(userSession != null){
                         if(sessionTimeOut(userSession.get("last_event"), event.get("event_time"))){
                             userSession.put("visit_count", incr(userSession.get("visit_count")));
                             userSession.put("last_event", event.get("event_time").toString());
-                            jedis.hset(uuid, userSession);
                         }else {
                             userSession = new HashMap<String, String>() {{
                                 put("uuid", uuid);
@@ -100,11 +104,16 @@ public class Main {
                                 put("first_event", event.get("event_time").toString());
                                 put("url", event.get("url").toString());
                             }};
-                            jedis.hset(uuid, userSession);
+                            Transaction transc = jedis.multi();
+                            transc.hset(uuid, userSession);
+                            List<Object> success = transc.exec();
                         }
+                    }else{
+                        jedis.unwatch();
                     }
                     jedis.lpush(avroEncode(event));
                 }
+                consumer.commitSync();
             }
 
         } catch (Exception e) {

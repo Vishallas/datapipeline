@@ -1,0 +1,39 @@
+{
+  "namespace": "org.example",
+  "type": "record",
+  "name": "EventSchemaV1",
+  "fields": [
+    {
+      "name": "uuid",
+      "type": "string"
+    },
+    {
+      "name": "ip",
+      "type": "string"
+    },
+    {
+      "name": "user_agent",
+      "type": "string"
+    },
+    {
+      "name": "events",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "event",
+          "fields": [
+            {
+              "name": "time",
+              "type": "string"
+            },
+            {
+              "name": "url",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

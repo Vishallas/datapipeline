@@ -1,5 +1,7 @@
 package org.example;
 
+import com.datastax.oss.driver.api.core.cql.PreparedStatement;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.google.gson.JsonObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -9,10 +11,11 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
-import redis.clients.jedis.resps.ScanResult;
 
-import java.util.HashMap;
+import javax.xml.crypto.Data;
+import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or

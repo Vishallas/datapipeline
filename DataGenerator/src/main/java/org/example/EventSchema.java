@@ -73,10 +73,10 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
     return DECODER.decode(b);
   }
 
-  private java.lang.CharSequence ip;
-  private java.lang.CharSequence user_agent;
-  private java.lang.CharSequence url;
-  private java.lang.CharSequence event_time;
+  private CharSequence ip;
+  private CharSequence user_agent;
+  private CharSequence url;
+  private CharSequence event_time;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -92,7 +92,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
    * @param url The new value for url
    * @param event_time The new value for event_time
    */
-  public EventSchema(java.lang.CharSequence ip, java.lang.CharSequence user_agent, java.lang.CharSequence url, java.lang.CharSequence event_time) {
+  public EventSchema(CharSequence ip, CharSequence user_agent, CharSequence url, CharSequence event_time) {
     this.ip = ip;
     this.user_agent = user_agent;
     this.url = url;
@@ -100,14 +100,14 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
   }
 
   @Override
-  public org.apache.avro.specific.SpecificData getSpecificData() { return MODEL$; }
+  public SpecificData getSpecificData() { return MODEL$; }
 
   @Override
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
 
   // Used by DatumWriter.  Applications should not call.
   @Override
-  public java.lang.Object get(int field$) {
+  public Object get(int field$) {
     switch (field$) {
     case 0: return ip;
     case 1: return user_agent;
@@ -120,12 +120,12 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
   // Used by DatumReader.  Applications should not call.
   @Override
   @SuppressWarnings(value="unchecked")
-  public void put(int field$, java.lang.Object value$) {
+  public void put(int field$, Object value$) {
     switch (field$) {
-    case 0: ip = (java.lang.CharSequence)value$; break;
-    case 1: user_agent = (java.lang.CharSequence)value$; break;
-    case 2: url = (java.lang.CharSequence)value$; break;
-    case 3: event_time = (java.lang.CharSequence)value$; break;
+    case 0: ip = (CharSequence)value$; break;
+    case 1: user_agent = (CharSequence)value$; break;
+    case 2: url = (CharSequence)value$; break;
+    case 3: event_time = (CharSequence)value$; break;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
@@ -134,7 +134,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
    * Gets the value of the 'ip' field.
    * @return The value of the 'ip' field.
    */
-  public java.lang.CharSequence getIp() {
+  public CharSequence getIp() {
     return ip;
   }
 
@@ -143,7 +143,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
    * Sets the value of the 'ip' field.
    * @param value the value to set.
    */
-  public void setIp(java.lang.CharSequence value) {
+  public void setIp(CharSequence value) {
     this.ip = value;
   }
 
@@ -151,7 +151,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
    * Gets the value of the 'user_agent' field.
    * @return The value of the 'user_agent' field.
    */
-  public java.lang.CharSequence getUserAgent() {
+  public CharSequence getUserAgent() {
     return user_agent;
   }
 
@@ -160,7 +160,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
    * Sets the value of the 'user_agent' field.
    * @param value the value to set.
    */
-  public void setUserAgent(java.lang.CharSequence value) {
+  public void setUserAgent(CharSequence value) {
     this.user_agent = value;
   }
 
@@ -168,7 +168,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
    * Gets the value of the 'url' field.
    * @return The value of the 'url' field.
    */
-  public java.lang.CharSequence getUrl() {
+  public CharSequence getUrl() {
     return url;
   }
 
@@ -177,7 +177,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
    * Sets the value of the 'url' field.
    * @param value the value to set.
    */
-  public void setUrl(java.lang.CharSequence value) {
+  public void setUrl(CharSequence value) {
     this.url = value;
   }
 
@@ -185,7 +185,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
    * Gets the value of the 'event_time' field.
    * @return The value of the 'event_time' field.
    */
-  public java.lang.CharSequence getEventTime() {
+  public CharSequence getEventTime() {
     return event_time;
   }
 
@@ -194,7 +194,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
    * Sets the value of the 'event_time' field.
    * @param value the value to set.
    */
-  public void setEventTime(java.lang.CharSequence value) {
+  public void setEventTime(CharSequence value) {
     this.event_time = value;
   }
 
@@ -202,8 +202,8 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
    * Creates a new EventSchema RecordBuilder.
    * @return A new EventSchema RecordBuilder
    */
-  public static org.example.EventSchema.Builder newBuilder() {
-    return new org.example.EventSchema.Builder();
+  public static Builder newBuilder() {
+    return new Builder();
   }
 
   /**
@@ -211,11 +211,11 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
    * @param other The existing builder to copy.
    * @return A new EventSchema RecordBuilder
    */
-  public static org.example.EventSchema.Builder newBuilder(org.example.EventSchema.Builder other) {
+  public static Builder newBuilder(Builder other) {
     if (other == null) {
-      return new org.example.EventSchema.Builder();
+      return new Builder();
     } else {
-      return new org.example.EventSchema.Builder(other);
+      return new Builder(other);
     }
   }
 
@@ -224,11 +224,11 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
    * @param other The existing instance to copy.
    * @return A new EventSchema RecordBuilder
    */
-  public static org.example.EventSchema.Builder newBuilder(org.example.EventSchema other) {
+  public static Builder newBuilder(EventSchema other) {
     if (other == null) {
-      return new org.example.EventSchema.Builder();
+      return new Builder();
     } else {
-      return new org.example.EventSchema.Builder(other);
+      return new Builder(other);
     }
   }
 
@@ -239,10 +239,10 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
   public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<EventSchema>
     implements org.apache.avro.data.RecordBuilder<EventSchema> {
 
-    private java.lang.CharSequence ip;
-    private java.lang.CharSequence user_agent;
-    private java.lang.CharSequence url;
-    private java.lang.CharSequence event_time;
+    private CharSequence ip;
+    private CharSequence user_agent;
+    private CharSequence url;
+    private CharSequence event_time;
 
     /** Creates a new Builder */
     private Builder() {
@@ -253,7 +253,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
      * Creates a Builder by copying an existing Builder.
      * @param other The existing Builder to copy.
      */
-    private Builder(org.example.EventSchema.Builder other) {
+    private Builder(Builder other) {
       super(other);
       if (isValidValue(fields()[0], other.ip)) {
         this.ip = data().deepCopy(fields()[0].schema(), other.ip);
@@ -277,7 +277,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
      * Creates a Builder by copying an existing EventSchema instance
      * @param other The existing instance to copy.
      */
-    private Builder(org.example.EventSchema other) {
+    private Builder(EventSchema other) {
       super(SCHEMA$, MODEL$);
       if (isValidValue(fields()[0], other.ip)) {
         this.ip = data().deepCopy(fields()[0].schema(), other.ip);
@@ -301,7 +301,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
       * Gets the value of the 'ip' field.
       * @return The value.
       */
-    public java.lang.CharSequence getIp() {
+    public CharSequence getIp() {
       return ip;
     }
 
@@ -311,7 +311,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
       * @param value The value of 'ip'.
       * @return This builder.
       */
-    public org.example.EventSchema.Builder setIp(java.lang.CharSequence value) {
+    public Builder setIp(CharSequence value) {
       validate(fields()[0], value);
       this.ip = value;
       fieldSetFlags()[0] = true;
@@ -331,7 +331,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
       * Clears the value of the 'ip' field.
       * @return This builder.
       */
-    public org.example.EventSchema.Builder clearIp() {
+    public Builder clearIp() {
       ip = null;
       fieldSetFlags()[0] = false;
       return this;
@@ -341,7 +341,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
       * Gets the value of the 'user_agent' field.
       * @return The value.
       */
-    public java.lang.CharSequence getUserAgent() {
+    public CharSequence getUserAgent() {
       return user_agent;
     }
 
@@ -351,7 +351,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
       * @param value The value of 'user_agent'.
       * @return This builder.
       */
-    public org.example.EventSchema.Builder setUserAgent(java.lang.CharSequence value) {
+    public Builder setUserAgent(CharSequence value) {
       validate(fields()[1], value);
       this.user_agent = value;
       fieldSetFlags()[1] = true;
@@ -371,7 +371,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
       * Clears the value of the 'user_agent' field.
       * @return This builder.
       */
-    public org.example.EventSchema.Builder clearUserAgent() {
+    public Builder clearUserAgent() {
       user_agent = null;
       fieldSetFlags()[1] = false;
       return this;
@@ -381,7 +381,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
       * Gets the value of the 'url' field.
       * @return The value.
       */
-    public java.lang.CharSequence getUrl() {
+    public CharSequence getUrl() {
       return url;
     }
 
@@ -391,7 +391,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
       * @param value The value of 'url'.
       * @return This builder.
       */
-    public org.example.EventSchema.Builder setUrl(java.lang.CharSequence value) {
+    public Builder setUrl(CharSequence value) {
       validate(fields()[2], value);
       this.url = value;
       fieldSetFlags()[2] = true;
@@ -411,7 +411,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
       * Clears the value of the 'url' field.
       * @return This builder.
       */
-    public org.example.EventSchema.Builder clearUrl() {
+    public Builder clearUrl() {
       url = null;
       fieldSetFlags()[2] = false;
       return this;
@@ -421,7 +421,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
       * Gets the value of the 'event_time' field.
       * @return The value.
       */
-    public java.lang.CharSequence getEventTime() {
+    public CharSequence getEventTime() {
       return event_time;
     }
 
@@ -431,7 +431,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
       * @param value The value of 'event_time'.
       * @return This builder.
       */
-    public org.example.EventSchema.Builder setEventTime(java.lang.CharSequence value) {
+    public Builder setEventTime(CharSequence value) {
       validate(fields()[3], value);
       this.event_time = value;
       fieldSetFlags()[3] = true;
@@ -451,7 +451,7 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
       * Clears the value of the 'event_time' field.
       * @return This builder.
       */
-    public org.example.EventSchema.Builder clearEventTime() {
+    public Builder clearEventTime() {
       event_time = null;
       fieldSetFlags()[3] = false;
       return this;
@@ -462,14 +462,14 @@ public class EventSchema extends org.apache.avro.specific.SpecificRecordBase imp
     public EventSchema build() {
       try {
         EventSchema record = new EventSchema();
-        record.ip = fieldSetFlags()[0] ? this.ip : (java.lang.CharSequence) defaultValue(fields()[0]);
-        record.user_agent = fieldSetFlags()[1] ? this.user_agent : (java.lang.CharSequence) defaultValue(fields()[1]);
-        record.url = fieldSetFlags()[2] ? this.url : (java.lang.CharSequence) defaultValue(fields()[2]);
-        record.event_time = fieldSetFlags()[3] ? this.event_time : (java.lang.CharSequence) defaultValue(fields()[3]);
+        record.ip = fieldSetFlags()[0] ? this.ip : (CharSequence) defaultValue(fields()[0]);
+        record.user_agent = fieldSetFlags()[1] ? this.user_agent : (CharSequence) defaultValue(fields()[1]);
+        record.url = fieldSetFlags()[2] ? this.url : (CharSequence) defaultValue(fields()[2]);
+        record.event_time = fieldSetFlags()[3] ? this.event_time : (CharSequence) defaultValue(fields()[3]);
         return record;
       } catch (org.apache.avro.AvroMissingFieldException e) {
         throw e;
-      } catch (java.lang.Exception e) {
+      } catch (Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);
       }
     }
