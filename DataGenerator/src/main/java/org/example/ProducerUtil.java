@@ -25,38 +25,7 @@ import java.text.SimpleDateFormat;
 import java.io.IOException;
 import java.io.FileWriter;
 
-class Session{
-    private String uuid;
-    private String url;
-    private String time;
 
-    public String getUuid() {
-        return uuid;
-    }
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getTime() {
-        return time;
-    }
-    public void setTime(String time) {
-        this.time = time;
-    }
-
-    Session(String uuid, String url, String time){
-        setUuid(uuid);
-        setUrl(url);
-        setTime(time);
-    }
-}
 
 class RandomStringGenerator {
     private final MessageDigest md;
@@ -181,29 +150,29 @@ class RandomStringGenerator {
         return formatter.format(currentTime.atZone(zoneId));
     }
 
-    public EventSchema getAvroEvent(){
-
-        EventSchema eventObj = new EventSchema();
-        eventObj.setIp(ipGenerator()); //IP
-        eventObj.setUserAgent(randUserAgent()); // user agent
-        eventObj.setUrl(randUrl()); // event url
-        eventObj.setEventTime(getTime()); // sequence time
-
-        return eventObj;
-    }
-
-    public EventSchemaV1 getAvroEventV1(int n){
-        EventSchemaV1 eventObj = new EventSchemaV1();
-        String ip = ipGenerator();
-        String userAgent = randUserAgent();
-        eventObj.setUuid(md5UUID(ip,userAgent));
-        eventObj.setIp(ip);
-        eventObj.setUserAgent(userAgent);
-
-        List<event> events = getRandUrlTime(n);
-        eventObj.setEvents(events);
-        return eventObj;
-    }
+//    public EventSchema getAvroEvent(){
+//
+//        EventSchema eventObj = new EventSchema();
+//        eventObj.setIp(ipGenerator()); //IP
+//        eventObj.setUserAgent(randUserAgent()); // user agent
+//        eventObj.setUrl(randUrl()); // event url
+//        eventObj.setEventTime(getTime()); // sequence time
+//
+//        return eventObj;
+//    }
+//
+//    public EventSchemaV1 getAvroEventV1(int n){
+//        EventSchemaV1 eventObj = new EventSchemaV1();
+//        String ip = ipGenerator();
+//        String userAgent = randUserAgent();
+//        eventObj.setUuid(md5UUID(ip,userAgent));
+//        eventObj.setIp(ip);
+//        eventObj.setUserAgent(userAgent);
+//
+//        List<event> events = getRandUrlTime(n);
+//        eventObj.setEvents(events);
+//        return eventObj;
+//    }
 
     private List<event> getRandUrlTime(int n) {
         List<event> events = new ArrayList<>();
@@ -224,34 +193,34 @@ class RandomStringGenerator {
         return events;
     }
 
-    public JSONObject getJsonEvent(EventSchema eventSchema){
-        JSONObject json = new JSONObject();
-        json.put("ip", eventSchema.getIp());
-        json.put("user_agent", eventSchema.getUserAgent());
-        json.put("event_time", eventSchema.getEventTime());
-        json.put("url", eventSchema.getUrl());
-        return json;
-    }
-
-    public JSONObject getJsonEvent(EventSchemaV1 eventSchema){
-        JSONObject json = new JSONObject();
-        json.put("ip", eventSchema.getIp());
-        json.put("user_agent", eventSchema.getUserAgent());
-        json.put("uuid", eventSchema.getUuid());
-        JSONArray jsonArray = new JSONArray();
-        for(event e : eventSchema.getEvents()){
-            JSONObject event = new JSONObject();
-            event.put("url", e.getUrl());
-            event.put("time", e.getTime());
-            jsonArray.put(event);
-        }
-        json.put("events", jsonArray);
-        return json;
-    }
+//    public JSONObject getJsonEvent(EventSchema eventSchema){
+//        JSONObject json = new JSONObject();
+//        json.put("ip", eventSchema.getIp());
+//        json.put("user_agent", eventSchema.getUserAgent());
+//        json.put("event_time", eventSchema.getEventTime());
+//        json.put("url", eventSchema.getUrl());
+//        return json;
+//    }
+//
+//    public JSONObject getJsonEvent(EventSchemaV1 eventSchema){
+//        JSONObject json = new JSONObject();
+//        json.put("ip", eventSchema.getIp());
+//        json.put("user_agent", eventSchema.getUserAgent());
+//        json.put("uuid", eventSchema.getUuid());
+//        JSONArray jsonArray = new JSONArray();
+//        for(event e : eventSchema.getEvents()){
+//            JSONObject event = new JSONObject();
+//            event.put("url", e.getUrl());
+//            event.put("time", e.getTime());
+//            jsonArray.put(event);
+//        }
+//        json.put("events", jsonArray);
+//        return json;
+//    }
 
     public void createFile() throws IOException {
 
-        String fileName = "output.txt";
+        String fileName = "output1.txt";
         List<String[]> data = new ArrayList<>();
         Instant Time = Instant.now();
         for(int i = 0; i<1000;i++) {
@@ -267,78 +236,15 @@ class RandomStringGenerator {
         char customDelimiter = '|';
             try (CSVWriter writer = new CSVWriter(new FileWriter(fileName),
                     customDelimiter,
-                    CSVWriter.DEFAULT_QUOTE_CHARACTER,
-                    CSVWriter.DEFAULT_ESCAPE_CHARACTER,
+                    '\0',
+                    '\0',
                     CSVWriter.DEFAULT_LINE_END)) {
                 writer.writeAll(data);
             }
 
 
     }
-    private void processBatch(Iterator<Session> records, int size, String uuid){
-        final int SESSION_PER_BATCH = 20;
-        int batch_no = 1;
-        int remSession = size % SESSION_PER_BATCH;
-        int total_no_batch = size / SESSION_PER_BATCH + (remSession != 0 ? 1 : 0);
 
-        SimpleDateFormat t1 = null;
-        while(records.hasNext()){
-            Session meta = records.next();
-            if(t1 == null){
-                t1 = new SimpleDateFormat(meta.getTime());
-            }
-        }
-
-        for(int i = 0;i<total_no_batch;i++){
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("uuid", uuid);
-            JSONArray metaData = new JSONArray();
-
-            for(int j = 0;j<SESSION_PER_BATCH;j++){
-                Session record = records.next();
-                JSONObject meta = new JSONObject();
-                meta.put("url", record.getUrl());
-                meta.put("time", record.getTime());
-                metaData.put(meta);
-            }
-        }
-    }
-
-    private Session getRecordFromLine(String line) {
-        Session values;
-        try (Scanner rowScanner = new Scanner(line)) {
-            rowScanner.useDelimiter("|");
-
-            String ip = rowScanner.next();
-            String userAgent = rowScanner.next();
-            String url = rowScanner.next();
-            String time = rowScanner.next();
-            values = new Session(md5UUID(ip, userAgent), url, time);
-
-        }
-        return values;
-    }
-    public void readFile(String fileName){
-        List<Session> records = new ArrayList<>();
-        try (Scanner scanner = new Scanner(new File("book.csv"))) {
-            String uuid = null;
-            while (scanner.hasNextLine()) {
-                // Todo handle per user list
-                Session data = getRecordFromLine(scanner.nextLine());
-                if(uuid==null || data.getUuid().equals(uuid)) {
-                    records.add(data);
-                    if (uuid==null) {
-                        uuid = data.getUuid();
-                    }
-                }else{
-                    // Todo producer code
-                    uuid = data.getUuid();
-                }
-            }
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
 
 public class ProducerUtil implements Runnable {
@@ -357,23 +263,23 @@ public class ProducerUtil implements Runnable {
             prop.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
             prop.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
             prop.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, CustomAvroSerializer.class.getName());
-            try (KafkaProducer<Void, EventSchema> producer = new KafkaProducer<>(prop)) {
-                while (true) {
-                    Thread.sleep(2000);
-                    EventSchema eventData = randGent.getAvroEvent();
-
-                    ProducerRecord<Void, EventSchema> producerRecord = new ProducerRecord<>(topicName, partition, null, eventData);
-                    producer.send(producerRecord, (recordMetadata, e) ->
-                            log.info("Published to " + recordMetadata.topic()
-                                    + ", Key " + null
-                                    + ", Partition " + recordMetadata.partition()
-                                    + ", timestamp " + recordMetadata.timestamp()
-                            )
-                    );
-                }
-            } catch (Exception e) {
-                log.error("Error occured ", e);
-            }
+//            try (KafkaProducer<Void, EventSchema> producer = new KafkaProducer<>(prop)) {
+//                while (true) {
+//                    Thread.sleep(2000);
+//                    EventSchema eventData = randGent.getAvroEvent();
+//
+//                    ProducerRecord<Void, EventSchema> producerRecord = new ProducerRecord<>(topicName, partition, null, eventData);
+//                    producer.send(producerRecord, (recordMetadata, e) ->
+//                            log.info("Published to " + recordMetadata.topic()
+//                                    + ", Key " + null
+//                                    + ", Partition " + recordMetadata.partition()
+//                                    + ", timestamp " + recordMetadata.timestamp()
+//                            )
+//                    );
+//                }
+//            } catch (Exception e) {
+//                log.error("Error occured ", e);
+//            }
         }catch (Exception e){
             log.error("Error Generated", e);
         }

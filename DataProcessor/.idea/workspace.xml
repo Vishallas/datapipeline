@@ -5,14 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="47ef0ead-4cd7-4906-ae51-08acf85c4e9a" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../DataGenerator/EventSchema.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../DataGenerator/src/main/avro/EventSchemaV1.avsc" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataGenerator/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataGenerator/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/avro/EventSchema.avsc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/EventSchema.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/EventSchema.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataGenerator/.~lock.output.txt#" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/EventSchema.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/EventSchemaV1.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/ProducerUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/ProducerUtil.java" afterDir="false" />
     </list>
@@ -38,20 +35,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feat/avro&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataCaching&quot;,
-    &quot;onboarding.tips.debug.path&quot;: &quot;/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataProcessor/src/main/java/org/example/Main.java&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Main.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "dev",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataCaching",
+    "onboarding.tips.debug.path": "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataProcessor/src/main/java/org/example/Main.java",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "preferences.keymap"
   }
-}</component>
+}]]></component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">

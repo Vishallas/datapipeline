@@ -6,10 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b4ec1408-39e9-49b6-9d26-605138094ada" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataProcessor/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataProcessor/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataProcessor/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/src/main/java/org/example/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,7 +41,7 @@
     "Maven.DataGenerator [package].executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "feat/avro",
+    "git-widget-placeholder": "dev",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataGenerator/src/main/java/org/example",
     "onboarding.tips.debug.path": "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataGenerator/src/main/java/org/example/Main.java",
@@ -80,5 +77,20 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>jar:///usr/lib/jvm/java-1.8.0-openjdk-amd64/jre/lib/rt.jar!/java/lang/AutoCloseable.class</url>
+          <line>8</line>
+          <properties class="java.lang.AutoCloseable" method="close">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
