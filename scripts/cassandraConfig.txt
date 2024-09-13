@@ -1,0 +1,18 @@
+CREATE KEYSPACE IF NOT EXISTS test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };
+
+CREATE TABLE IF NOT EXISTS test.blob ( id int PRIMARY KEY , json blob );
+
+
+CREATE TABLE test.insertable (
+    uuid text PRIMARY KEY,
+    first_visit timestamp,
+    last_visit timestamp,
+    visit_count bigint
+);
+
+CREATE TABLE test.appendable (
+    uuid text,
+    visit_no bigint,
+    meta blob,
+    PRIMARY KEY ((uuid, visit_no))
+);

@@ -1,6 +1,5 @@
 package org.example;
 
-import org.apache.avro.JsonProperties;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.json.JSONArray;
@@ -9,11 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.plaf.synth.SynthTextAreaUI;
-import java.awt.*;
-import java.io.Closeable;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -30,7 +25,7 @@ public class DataProcessor {
 
     DataProcessor() throws NoSuchAlgorithmException {
         this.md = MessageDigest.getInstance("md5");
-        this.sdf1 = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        this.sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // 2011-02-03 04:05:00
     }
 
     private class Event {
@@ -68,11 +63,38 @@ public class DataProcessor {
 
     private class Batch{
         private String uuid;
-        private JSONArray session;
+        private String firstEventTime;
+        private JSONArray session = null;
 
         Batch(String uuid){
             this.setUuid(uuid);
-            this.session = new JSONArray();
+        }
+
+        public void addMeta(Event event){
+            if (session == null){
+                this.session = new JSONArray();
+                setFirstEventTime(event.getTime());
+            }
+            JSONObject meta = new JSONObject();
+            meta.put("url", event.getUrl());
+            meta.put("time", event.getTime());
+            this.session.put(meta);
+        }
+
+        public String getJsonString(){
+            JSONObject batch = new JSONObject();
+            batch.put("uuid", getUuid());
+            batch.put("first_event_time", getFirstEventTime());
+            batch.put("events", getSession());
+            return batch.toString();
+        }
+
+        private String getFirstEventTime() {
+            return firstEventTime;
+        }
+
+        private void setFirstEventTime(String firstEventTime) {
+            this.firstEventTime = firstEventTime;
         }
 
         private void setUuid(String uuid){
@@ -85,19 +107,6 @@ public class DataProcessor {
             return this.session;
         }
 
-        public void addMeta(Event event){
-            JSONObject meta = new JSONObject();
-            meta.put("url", event.getUrl());
-            meta.put("time", event.getTime());
-            this.session.put(meta);
-        }
-
-        public String getJsonString(){
-            JSONObject batch = new JSONObject();
-            batch.put("uuid", getUuid());
-            batch.put("events", getSession());
-            return batch.toString();
-        }
     }
 
     private String md5UUID(String ip, String userAgent){
@@ -118,29 +127,9 @@ public class DataProcessor {
 
         return (new UUID(mostSigBits, leastSigBits)).toString();
     }
-
-    private void processBatch(KafkaProducer<String, String> kafkaProducer, String TOPIC, Iterator<Event> records) throws ParseException {
-        Date previousEventTime = null;
-
-        Batch batch = null;
-
-        while(records.hasNext()){
-            Event event = records.next();
-            Date currentEventTime = sdf1.parse(event.getTime());
-
-            // First event or No timeout
-            if(previousEventTime == null || currentEventTime.getTime() - previousEventTime.getTime() <= TIMEOUT){
-
-                // Creating Batch Object for first event
-                if (previousEventTime == null)
-                    batch = new Batch(event.getUuid());
-
-                // Adding Event to the session
-                batch.addMeta(event);
-
-            }else {
-                // Session before timeout
-                kafkaProducer.send(new ProducerRecord<>(TOPIC, batch.getJsonString()), (recordMetadata, e) -> {
+    private void sendToKafka(KafkaProducer<String, String> kafkaProducer, String TOPIC, String data){
+        kafkaProducer.send(new ProducerRecord<>(TOPIC, data)
+        , (recordMetadata, e) -> {
                     if (e == null) {
                         log.info(" [+] RECORD SENT TO TOPIC {}, PARTITION {}, OFFSET {}, TIMESTAMP {}",
                                 recordMetadata.topic(),
@@ -155,17 +144,32 @@ public class DataProcessor {
                                 recordMetadata.timestamp());
                     }
                 }
-                );
+        );
+    }
+    private int processUsers(KafkaProducer<String, String> kafkaProducer, String TOPIC, Iterator<Event> users, long userCount) throws ParseException {
+        Date previousEventTime = null;
 
-                // Initializing for new batch
+        Batch batch = null;
+        int session = 0;
+        while(users.hasNext()){
+            Event event = users.next();
+            Date currentEventTime = sdf1.parse(event.getTime());
+            if(previousEventTime == null){
                 batch = new Batch(event.getUuid());
-                // Adding first meta
-                batch.addMeta(event);
+            }else if(currentEventTime.getTime() - previousEventTime.getTime() > TIMEOUT){
+                session++;
+                sendToKafka(kafkaProducer, TOPIC, batch.getJsonString());
+                batch = new Batch(event.getUuid());
             }
-
-            // Updating to new time
+            batch.addMeta(event);
             previousEventTime = currentEventTime;
         }
+        if (batch!=null){
+            session++;
+            sendToKafka(kafkaProducer, TOPIC, batch.getJsonString());
+        }
+//        log.info("[{}] Processing user {} with session {}.", userCount,batch.getUuid(), session);
+        return session;
     }
 
     private Event getRecordFromLine(String line) {
@@ -192,30 +196,35 @@ public class DataProcessor {
     }
 
     public void processFile(String fileName){
-        final String TOPIC = "hadoop_data";
+        final String TOPIC = "hadoop_data_1";
+        long totalUsers = 0l;
+        long offset = 0l;
         try (Scanner scanner = new Scanner(new File(fileName))) {
             String uuid = null;
-            List<Event> records = null;
+            List<Event> users = null;
             try(KafkaProducer<String, String> kafkaProducer = initializeKafka()) {
                 while (scanner.hasNextLine()) {
+
                     Event data = getRecordFromLine(scanner.nextLine());
-                    if (uuid == null || data.getUuid().equals(uuid)) {
-                        if (uuid == null) {
-                            records = new ArrayList<>();
-                            uuid = data.getUuid();
+                    if (!data.getUuid().equals(uuid)) { // new user
+
+                        // For first line
+                        if (users != null) {
+                            totalUsers++;
+                            offset+=processUsers(kafkaProducer, TOPIC, users.iterator(), totalUsers); //processing users
                         }
-                        records.add(data);
-                    } else { // first line or new user data
-
-                        // New User
-                        if (records != null)
-                            processBatch(kafkaProducer, TOPIC, records.iterator());
-
                         // Common
                         uuid = data.getUuid();
-                        records = new ArrayList<>();
+                        users = new ArrayList<>();
                     }
+                    users.add(data);
                 }
+                // remaining users
+                if(!users.isEmpty()){
+                    totalUsers++;
+                    offset+=processUsers(kafkaProducer, TOPIC, users.iterator(), totalUsers); // Processign users
+                }
+                log.info("[total] Users count = {} with practical offset {}", totalUsers, offset);
             }
         } catch (Exception e) {
 

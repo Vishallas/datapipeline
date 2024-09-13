@@ -5,6 +5,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -51,6 +52,7 @@ public class DataProcessor {
     }
     private List<Session> processToJson(ConsumerRecords<String, String> records){
         List<Session> batch = new ArrayList<>();
+        long offset = -1;
         for(ConsumerRecord record : records) {
             JSONObject jsonBatch = new JSONObject(new JSONTokener(record.value().toString()));
             Session session = new Session();
@@ -59,7 +61,10 @@ public class DataProcessor {
             jsonBatch.remove("uuid");
             session.setBatch(jsonBatch);
             batch.add(session);
+            offset = record.offset();
         }
+        if(offset!=-1)
+            log.info("[*] End offset {}",offset);
         return batch;
     }
 
@@ -70,25 +75,40 @@ public class DataProcessor {
 
         try (KafkaConsumer<String, String> consumer = initializeKafka();
              Jedis jedis = new Jedis(REDIS_ADDR, REDIS_PORT);) {
+            consumer.assign(Collections.singletonList(new TopicPartition(topic, 0)));
+            ConsumerRecords<String, String> records = null;
 
-            while (true) {
-                consumer.subscribe(Collections.singletonList(topic));
-                Thread.sleep(5000);
-                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(200));
-                String uuid = null;
-                List<Session> sessions = processToJson(records);
-                for ( Session session : sessions) {
-                    if (uuid == null){
-                        uuid = session.getUuid();
-                    }else if(!uuid.equals(session.getUuid())){
-                        jedis.lpush("uuids", "uuid:" + uuid);
-                        log.info("[+] Processed uuid {}",uuid);
-                        uuid = session.getUuid();
-                    }else{
-                        jedis.lpush("uuid:"+session.getUuid(), session.getBatch().toString());
+            long userCount = 0;
+            String prevUuid = null;
+
+            while(true){
+                records = consumer.poll(Duration.ofMillis(500));
+
+                Iterator<Session> sessions = processToJson(records).iterator();
+                while (sessions.hasNext()){
+                    Session session = sessions.next();
+                    if(prevUuid == null){ // first session of the poll
+                        prevUuid = session.getUuid(); // Assigning value to uuid
+                    } else if(!session.getUuid().equals(prevUuid)) { // not a previous user
+                        jedis.rpush("uuids", "uuid:" + prevUuid);
+//                        jedis.sadd("test", "uuid:"+prevUuid);
+                        prevUuid = session.getUuid();
+                        userCount++;
                     }
+                    jedis.rpush("uuid:" + session.getUuid(), session.getBatch().toString());
+
                 }
-            }
+                if(records.count() == 0 && prevUuid != null) {
+                    jedis.rpush("uuids", "uuid:" + prevUuid);
+                    prevUuid = null;
+                    userCount++;
+                }
+                log.info("Total user counts {}", userCount);
+                log.info("[-] Waiting for 5 seconds");
+//                log.info("[0] Record Count {}.", records.count());
+//                Thread.sleep(5000);
+            }//while (!records.isEmpty() && records != null);
+//
         }
     }
 }

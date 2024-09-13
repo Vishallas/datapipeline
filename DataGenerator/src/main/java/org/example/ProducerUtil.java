@@ -35,6 +35,12 @@ class RandomStringGenerator {
     private final Random random;
     private Instant currentTime= null;
     private final ZoneId zoneId;
+    private final int IP_NEED = 50;
+    private final int USERAGENTS_NEED = 20;
+    private int ipCount = 0;
+    private int userAgentCount = 0;
+    private final String[] ips;
+    private final int USER_COUNT;
 
     RandomStringGenerator() throws NoSuchAlgorithmException {
         this.md = MessageDigest.getInstance("md5");
@@ -42,7 +48,9 @@ class RandomStringGenerator {
         this.userAgentList = assignUserAgent();
         this.urlList = assignUrl();
         this.random =new Random();
-        this.zoneId = ZoneId.of("UTC");
+        this.zoneId = ZoneId.of("Asia/Kolkata");
+        this.ips = createIpArray(IP_NEED);
+        this.USER_COUNT = IP_NEED*USERAGENTS_NEED;
     }
     private String md5UUID(String ip, String userAgent){
 
@@ -123,6 +131,45 @@ class RandomStringGenerator {
         return urlList[randomNumber];
     }
 
+    private String[] userCombo(){
+        String[] data = new String[2];
+        if(userAgentCount==USERAGENTS_NEED) {
+            userAgentCount = 0;
+            ipCount++;
+        }
+        data[0] = ips[ipCount];
+        System.out.println(ipCount +" " + userAgentCount);
+        data[1] = userAgentList[userAgentCount++];
+        return data;
+    }
+
+    public String[] createIpArray(int n){
+        String[] array = new String[n];
+        int h = 0;
+        int f = 180;
+        while (f<256){
+            int s = 0;
+            while (s<256){
+                int t = 0;
+                while (t<256){
+                    int ff = 0;
+                    while (ff<256){
+                        array[h] = String.format("%d.%d.%d.%d", f, s, t, ff);
+                        ff++;
+                        h++;
+                        if (h==n)
+                            return array;
+                    }
+                    t++;
+                }
+                s++;
+            }
+            f++;
+        }
+
+        return array;
+    }
+
     private String ipGenerator() {
 
         Random random = new Random();
@@ -134,6 +181,13 @@ class RandomStringGenerator {
         int fourthOctet = random.nextInt(256); // 0 - 255
 
         return String.format("%d.%d.%d.%d", firstOctet, secondOctet, thirdOctet, fourthOctet);
+    }
+
+    private String staticIpGenerator(){
+        return ips[this.ipCount++];
+    }
+    private String staticUserAgentGenerator(){
+        return userAgentList[this.userAgentCount++];
     }
 
     private String getTime(){
@@ -149,30 +203,6 @@ class RandomStringGenerator {
 
         return formatter.format(currentTime.atZone(zoneId));
     }
-
-//    public EventSchema getAvroEvent(){
-//
-//        EventSchema eventObj = new EventSchema();
-//        eventObj.setIp(ipGenerator()); //IP
-//        eventObj.setUserAgent(randUserAgent()); // user agent
-//        eventObj.setUrl(randUrl()); // event url
-//        eventObj.setEventTime(getTime()); // sequence time
-//
-//        return eventObj;
-//    }
-//
-//    public EventSchemaV1 getAvroEventV1(int n){
-//        EventSchemaV1 eventObj = new EventSchemaV1();
-//        String ip = ipGenerator();
-//        String userAgent = randUserAgent();
-//        eventObj.setUuid(md5UUID(ip,userAgent));
-//        eventObj.setIp(ip);
-//        eventObj.setUserAgent(userAgent);
-//
-//        List<event> events = getRandUrlTime(n);
-//        eventObj.setEvents(events);
-//        return eventObj;
-//    }
 
     private List<event> getRandUrlTime(int n) {
         List<event> events = new ArrayList<>();
@@ -193,42 +223,19 @@ class RandomStringGenerator {
         return events;
     }
 
-//    public JSONObject getJsonEvent(EventSchema eventSchema){
-//        JSONObject json = new JSONObject();
-//        json.put("ip", eventSchema.getIp());
-//        json.put("user_agent", eventSchema.getUserAgent());
-//        json.put("event_time", eventSchema.getEventTime());
-//        json.put("url", eventSchema.getUrl());
-//        return json;
-//    }
-//
-//    public JSONObject getJsonEvent(EventSchemaV1 eventSchema){
-//        JSONObject json = new JSONObject();
-//        json.put("ip", eventSchema.getIp());
-//        json.put("user_agent", eventSchema.getUserAgent());
-//        json.put("uuid", eventSchema.getUuid());
-//        JSONArray jsonArray = new JSONArray();
-//        for(event e : eventSchema.getEvents()){
-//            JSONObject event = new JSONObject();
-//            event.put("url", e.getUrl());
-//            event.put("time", e.getTime());
-//            jsonArray.put(event);
-//        }
-//        json.put("events", jsonArray);
-//        return json;
-//    }
-
     public void createFile() throws IOException {
 
-        String fileName = "output1.txt";
+        String fileName = "rawData.csv";
         List<String[]> data = new ArrayList<>();
         Instant Time = Instant.now();
-        for(int i = 0; i<1000;i++) {
-            String ip = ipGenerator();
-            String userAgent = randUserAgent();
+        for(int i = 0; i<USER_COUNT;i++) {
+//            String ip = staticIpGenerator();
+//            String userAgent = staticUserAgentGenerator();
+            String[] ip_useragent = userCombo();
             currentTime = Time;
-            for (int j = 0; j < 50; j++) {
-                data.add(new String[]{ip, userAgent, randUrl(), getTime()});
+            for (int j = 0; j < 20; j++) {
+//                data.add(userCombo(randUrl(), getTime()));
+                data.add(new String[]{ip_useragent[0], ip_useragent[1], randUrl(), getTime()});
             }
 
         }

@@ -6,11 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="b4ec1408-39e9-49b6-9d26-605138094ada" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/ConsumerUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/ConsumerUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/CustomAvroDeserializer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/EventSchema.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/DataProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/DataProcessor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataProcessor/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataProcessor/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataProcessor/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataProcessor/src/main/java/org/example/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -6,18 +6,25 @@
   <component name="ChangeListManager">
     <list default="true" id="47ef0ead-4cd7-4906-ae51-08acf85c4e9a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/ConsumerUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/ConsumerUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/CustomAvroDeserializer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/EventSchema.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/DataProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/DataProcessor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/src/main/java/org/example/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataGenerator/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataGenerator/.~lock.output1.txt#" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/DataProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/DataProcessor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/ProducerUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/src/main/java/org/example/ProducerUtil.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
