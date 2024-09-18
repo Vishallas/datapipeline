@@ -1,0 +1,44 @@
+version: '3.8'  # or the version you are using
+
+services:
+  hadoop-master:
+    image: hadoop_node
+    volumes:
+      - hadoop_master_vol:/usr/local/hadoop/data/dataNode
+    ports:
+      - "9870:9870"
+    networks:
+      hadoop-cluster-net:
+        ipv4_address: 10.1.0.2
+    command: ["/usr/local/hadoop/sbin/start-all.sh"]
+
+  hadoop-slave1:
+    image: hadoop_node
+    volumes:
+      - hadoop_slave1_vol:/usr/local/hadoop/data/dataNode
+    networks:
+      hadoop-cluster-net:
+        ipv4_address: 10.1.0.3
+    command: ["/usr/local/hadoop/sbin/start-all.sh"]
+
+  hadoop-slave2:
+    image: hadoop_node
+    volumes:
+      - hadoop_slave2_vol:/usr/local/hadoop/data/dataNode
+    networks:
+      hadoop-cluster-net:
+        ipv4_address: 10.1.0.4
+    command: ["/usr/local/hadoop/sbin/start-all.sh"]
+
+networks:
+  hadoop-cluster-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.1.0.0/16
+          gateway: 10.1.0.1
+
+volumes:
+  hadoop_master_vol:
+  hadoop_slave1_vol:
+  hadoop_slave2_vol:

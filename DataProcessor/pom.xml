@@ -30,7 +30,11 @@
             <artifactId>jedis</artifactId>
             <version>5.0.2</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20231013</version>
+        </dependency>
 
 
         <dependency>

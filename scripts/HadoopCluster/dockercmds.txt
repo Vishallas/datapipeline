@@ -1,0 +1,5 @@
+docker run -it --ip 10.0.0.2 --hostname hadoop-master --network hadoop-cluster-network --add-host=hadoop-slave1:10.0.0.3 --add-host=hadoop-slave2:10.0.0.4 hadoop_node1 bash
+
+docker run -it --ip 10.0.0.3 --hostname hadoop-slave1 --network hadoop-cluster-network --add-host=hadoop-master:10.0.0.2 --add-host=hadoop-slave2:10.0.0.4 hadoop_node1 bash
+
+docker run -it --ip 10.0.0.4 --hostname hadoop-slave2 --network hadoop-cluster-network --add-host=hadoop-slave1:10.0.0.3 --add-host=hadoop-master:10.0.0.2 hadoop_node1 bash

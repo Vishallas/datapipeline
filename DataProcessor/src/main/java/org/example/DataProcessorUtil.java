@@ -155,18 +155,6 @@ public class DataProcessorUtil {
                             addStatement(insertIntoAppendable.bind(uuid, localVisitCount, session.getEventsBlob()));
                 }
 
-//                if(localLastVisit == null || Duration.between(session.firstEventTime,localLastVisit).toMillis()<0L) {
-//
-//                    if(localFirstVisit == null) // if no user found
-//                        localFirstVisit = session.firstEventTime;
-//
-//                    localLastVisit = session.firstEventTime;
-//                    localVisitCount++;
-//
-//                    batchStatementBuilder = batchStatementBuilder.
-//                            addStatement(insertIntoAppendable.bind(uuid, localVisitCount, session.getEventsBlob()));
-//
-//                }
                 offset = session.offset;
             }
             if(firstTime) {

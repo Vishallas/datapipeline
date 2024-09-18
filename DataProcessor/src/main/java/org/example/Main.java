@@ -4,21 +4,13 @@ import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.core.cql.Row;
 
-import com.datastax.oss.driver.api.core.type.DataTypes;
 import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
 
-import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
-import org.apache.kafka.common.protocol.types.Field;
-import org.json.JSONObject;
 
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Date;
 
 
 public class Main {
@@ -47,7 +39,7 @@ public class Main {
             String firstVisit = "2024-09-09 12:25:44";
             String lastVisit = "2024-09-09 12:29:22";
 
-            Instant first = sdf1.parse(firstVisit).toInstant(); // Todo change to instant
+            Instant first = sdf1.parse(firstVisit).toInstant();
             Instant last = sdf1.parse(lastVisit).toInstant();
 
             session.execute(preparedStatement.bind("13lk23kljlkj", 1L , first, last));
