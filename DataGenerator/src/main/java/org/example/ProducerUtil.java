@@ -1,18 +1,7 @@
 package org.example;
 
 import com.opencsv.CSVWriter;
-import org.apache.kafka.clients.FetchSessionHandler;
-import org.apache.kafka.clients.producer.*;
-import org.apache.kafka.common.protocol.types.Field;
-import org.apache.kafka.common.serialization.StringSerializer;
-import org.json.JSONArray;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -20,14 +9,12 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import java.text.SimpleDateFormat;
-
 import java.io.IOException;
 import java.io.FileWriter;
 
 
 
-class RandomStringGenerator {
+class FileGenerator {
     private final MessageDigest md;
     private final DateTimeFormatter formatter;
     private final String[] userAgentList;
@@ -42,7 +29,7 @@ class RandomStringGenerator {
     private final String[] ips;
     private final int USER_COUNT;
 
-    RandomStringGenerator() throws NoSuchAlgorithmException {
+    FileGenerator() throws NoSuchAlgorithmException {
         this.md = MessageDigest.getInstance("md5");
         this.formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         this.userAgentList = assignUserAgent();
@@ -52,27 +39,10 @@ class RandomStringGenerator {
         this.ips = createIpArray(IP_NEED);
         this.USER_COUNT = IP_NEED*USERAGENTS_NEED;
     }
-    private String md5UUID(String ip, String userAgent){
-
-        String input = ip+userAgent;
-        byte[] hashBytes = md.digest(input.getBytes());
-
-        // Create a UUID from the first 16 bytes of the MD5 hash
-        long mostSigBits = 0;
-        long leastSigBits = 0;
-
-        for (int i = 0; i < 8; i++) {
-            mostSigBits |= ((long) (hashBytes[i] & 0xff)) << (8 * (7 - i));
-        }
-        for (int i = 8; i < 16; i++) {
-            leastSigBits |= ((long) (hashBytes[i] & 0xff)) << (8 * (15 - i));
-        }
-
-        return (new UUID(mostSigBits, leastSigBits)).toString();
-    }
 
     private String[] assignUserAgent(){
         return new String[] {
+                "Mozilla/5.0 (iPad; CPU OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12F69 Safari/600.1.4",
                 "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/37.0.2062.94 Chrome/37.0.2062.94 Safari/537.36"
                 ,"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36"
                 ,"Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko"
@@ -92,7 +62,6 @@ class RandomStringGenerator {
                 ,"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:40.0) Gecko/20100101 Firefox/40.0"
                 ,"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/600.8.9 (KHTML, like Gecko) Version/7.1.8 Safari/537.85.17"
                 ,"Mozilla/5.0 (iPad; CPU OS 8_4 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12H143 Safari/600.1.4"
-                ,"Mozilla/5.0 (iPad; CPU OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12F69 Safari/600.1.4"
             };
     }
 
@@ -121,10 +90,6 @@ class RandomStringGenerator {
         };
 
     }
-    private String randUserAgent(){
-        int randomNumber= random.nextInt(userAgentList.length);
-        return userAgentList[randomNumber];
-    }
 
     private String randUrl(){
         int randomNumber = random.nextInt(urlList.length);
@@ -146,7 +111,7 @@ class RandomStringGenerator {
     public String[] createIpArray(int n){
         String[] array = new String[n];
         int h = 0;
-        int f = 180;
+        int f = 181;
         while (f<256){
             int s = 0;
             while (s<256){
@@ -170,25 +135,7 @@ class RandomStringGenerator {
         return array;
     }
 
-    private String ipGenerator() {
 
-        Random random = new Random();
-
-        // Generate each of the 4 octets
-        int firstOctet = 180;
-        int secondOctet = 0;
-        int thirdOctet = 1; //random.nextInt(256);
-        int fourthOctet = random.nextInt(256); // 0 - 255
-
-        return String.format("%d.%d.%d.%d", firstOctet, secondOctet, thirdOctet, fourthOctet);
-    }
-
-    private String staticIpGenerator(){
-        return ips[this.ipCount++];
-    }
-    private String staticUserAgentGenerator(){
-        return userAgentList[this.userAgentCount++];
-    }
 
     private String getTime(){
         if(this.currentTime == null){
@@ -204,37 +151,16 @@ class RandomStringGenerator {
         return formatter.format(currentTime.atZone(zoneId));
     }
 
-    private List<event> getRandUrlTime(int n) {
-        List<event> events = new ArrayList<>();
-        StringBuilder salt = new StringBuilder();
-        for(int i = 0; i< 4;i++){
-            salt.append("e");
-        }
-        String url = salt.toString();
-        for(int i = 0;i<n;i++){
-            event e = new event();
-            e.setTime(getTime());
-//            e.setUrl(randUrl());
-
-            e.setUrl(url);
-            events.add(e);
-        }
-        this.currentTime = null;
-        return events;
-    }
 
     public void createFile() throws IOException {
 
-        String fileName = "rawData.csv";
+        String fileName = "rawData1.csv";
         List<String[]> data = new ArrayList<>();
         Instant Time = Instant.now();
         for(int i = 0; i<USER_COUNT;i++) {
-//            String ip = staticIpGenerator();
-//            String userAgent = staticUserAgentGenerator();
             String[] ip_useragent = userCombo();
             currentTime = Time;
             for (int j = 0; j < 20; j++) {
-//                data.add(userCombo(randUrl(), getTime()));
                 data.add(new String[]{ip_useragent[0], ip_useragent[1], randUrl(), getTime()});
             }
 
@@ -248,48 +174,5 @@ class RandomStringGenerator {
                     CSVWriter.DEFAULT_LINE_END)) {
                 writer.writeAll(data);
             }
-
-
-    }
-
-}
-
-public class ProducerUtil implements Runnable {
-    final String topicName = "hadoop_data";
-    final int partition;
-    ProducerUtil (int key){
-        this.partition = key;
-    }
-
-    @Override
-    public void run(){
-        Logger log = LoggerFactory.getLogger(ProducerUtil.class);
-        try {
-            RandomStringGenerator randGent = new RandomStringGenerator();
-            Properties prop = new Properties();
-            prop.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
-            prop.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-            prop.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, CustomAvroSerializer.class.getName());
-//            try (KafkaProducer<Void, EventSchema> producer = new KafkaProducer<>(prop)) {
-//                while (true) {
-//                    Thread.sleep(2000);
-//                    EventSchema eventData = randGent.getAvroEvent();
-//
-//                    ProducerRecord<Void, EventSchema> producerRecord = new ProducerRecord<>(topicName, partition, null, eventData);
-//                    producer.send(producerRecord, (recordMetadata, e) ->
-//                            log.info("Published to " + recordMetadata.topic()
-//                                    + ", Key " + null
-//                                    + ", Partition " + recordMetadata.partition()
-//                                    + ", timestamp " + recordMetadata.timestamp()
-//                            )
-//                    );
-//                }
-//            } catch (Exception e) {
-//                log.error("Error occured ", e);
-//            }
-        }catch (Exception e){
-            log.error("Error Generated", e);
-        }
-
     }
 }

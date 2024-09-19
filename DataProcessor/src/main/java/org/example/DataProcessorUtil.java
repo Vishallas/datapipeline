@@ -6,11 +6,20 @@ import com.datastax.oss.driver.api.core.cql.*;
 
 import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
 import com.datastax.oss.driver.api.querybuilder.update.Assignment;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hive.ql.exec.vector.BytesColumnVector;
+import org.apache.hadoop.hive.ql.exec.vector.LongColumnVector;
+import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.orc.OrcFile;
+import org.apache.orc.TypeDescription;
+import org.apache.orc.Writer;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -18,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,6 +45,7 @@ public class DataProcessorUtil {
     private PreparedStatement updateInsertable;
     private PreparedStatement getLastDataOfUser;
     private PreparedStatement newUserInsertable;
+    private long kafkaOffset = -1L;
 
     private class Session{
         private JSONArray metas;
@@ -112,7 +123,11 @@ public class DataProcessorUtil {
     }
 
 
-    private int processUser(KafkaConsumer<String , String > kafkaConsumer, Jedis jedis, CqlSession cqlSession, String key) throws ParseException {
+
+
+    private int processUser(Jedis jedis, Writer orcWriter, CqlSession cqlSession,
+                            String key, VectorizedRowBatch orcBatch, BytesColumnVector orcUuid,
+                            LongColumnVector orcVisit_no, BytesColumnVector orcMeta) throws ParseException, IOException {
         final int BATCH_SIZE = 5;
         long totalSessions = jedis.llen(key);
         String uuid = key.substring(5);
@@ -126,7 +141,7 @@ public class DataProcessorUtil {
 
         Boolean firstTime = true;
 
-        int count = 0;
+        int userCount = 0;
 
         Row rs = cqlSession.execute(getLastDataOfUser.bind(uuid)).one();
 
@@ -138,7 +153,6 @@ public class DataProcessorUtil {
         }
 
         BatchStatementBuilder batchStatementBuilder = BatchStatement.builder(BatchType.LOGGED);
-        long offset = -1L;
 
         for(long i = 0;i<totalSessions;i++) {
             List<String> jsonSessions = jedis.lrange(key, 0, 0);
@@ -151,70 +165,139 @@ public class DataProcessorUtil {
                 }else if(Duration.between(session.firstEventTime,localLastVisit).toMillis()<0L){
                     localVisitCount++;
                     localLastVisit = session.firstEventTime;
-                    batchStatementBuilder = batchStatementBuilder.
-                            addStatement(insertIntoAppendable.bind(uuid, localVisitCount, session.getEventsBlob()));
-                }
 
-                offset = session.offset;
+
+                    int row = orcBatch.size++;
+                    orcUuid.vector[row] = uuid.getBytes();
+                    orcVisit_no.vector[row] = localVisitCount;
+                    orcMeta.vector[row] = session.getEventsBlob().array();
+
+                    if (orcBatch.size == orcBatch.getMaxSize()) {
+                        orcWriter.addRowBatch(orcBatch); // Writing to memory
+                        orcBatch.reset(); // resetting the Vector batch to empty
+                    }
+
+//                    batchStatementBuilder = batchStatementBuilder.
+//                            addStatement(insertIntoAppendable.bind(uuid, localVisitCount, session.getEventsBlob()));
+                }
+                kafkaOffset = session.offset;
             }
             if(firstTime) {
                 cqlSession.execute(batchStatementBuilder
                         .addStatement(newUserInsertable.bind(uuid, localVisitCount, localFirstVisit, localLastVisit))
                         .build());
-                count++;
+                userCount++;
 //                log.info("[1] Inserting new user to cassandra");
                 firstTime = false;
             }else{
                 cqlSession.execute(batchStatementBuilder
                         .addStatement(updateInsertable.bind(localVisitCount, localLastVisit, uuid))
                         .build());
-//                log.info("[2] ]Updating user in cassandra");
             }
-            if(offset != -1) {
-//                log.info("[#] Offset set to {}", offset);
-                Map<TopicPartition, OffsetAndMetadata> commitOffset = new HashMap<>();
 
-                TopicPartition topicPartition = new TopicPartition(TOPIC, PARTITION);
-                OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(offset);
-                commitOffset.put(topicPartition, offsetAndMetadata);
+            // Commit to kafka per User
+//            if(offset != -1) {
+//                Map<TopicPartition, OffsetAndMetadata> commitOffset = new HashMap<>();
+//
+//                TopicPartition topicPartition = new TopicPartition(TOPIC, PARTITION);
+//                OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(offset);
+//                commitOffset.put(topicPartition, offsetAndMetadata);
+//
+//                kafkaConsumer.commitSync(commitOffset);
+//            }
 
-                kafkaConsumer.commitSync(commitOffset);
-            }
-            jedis.ltrim(key,1, -1);
+//             Cache remove as of processed
+             jedis.ltrim(key,1, -1);
         }
-        return count;
+
+        return userCount;
+    }
+
+
+    private void commitToKafka(KafkaConsumer<String, String> kafkaConsumer){
+        Map<TopicPartition, OffsetAndMetadata> commitOffset = new HashMap<>();
+
+        TopicPartition topicPartition = new TopicPartition(TOPIC, PARTITION);
+//        kafkaConsumer.assign(Collections.singletonList(topicPartition));
+        System.out.println(kafkaOffset+1);
+        OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(kafkaOffset+1);
+        commitOffset.put(topicPartition, offsetAndMetadata);
+
+        kafkaConsumer.commitSync(commitOffset);
+        System.out.println("offsetCommited");
+    }
+
+    private void processFilesPerday() throws IOException {
+        Configuration conf = new Configuration();
+
+        conf.set("fs.defaultFS", "hdfs://localhost:9000");
+        FileSystem fileSystem = FileSystem.get(conf);
+//        fileSystem.
+
     }
 
     public void run() throws ParseException {
         final String REDIS_ADDR = "localhost";
         final int REDIS_PORT = 6379;
         int count = 0;
-
+        System.out.println("Started...");
         final String KAFKA_CONSUMER_GROUP_ID = "hadoop_data_group_2";
         final String KAFKA_BOOTSTRAP_SERVERS = "localhost:29092,localhost:39092";
+
+        Configuration conf = new Configuration();
+//        conf.set("fs.defaultFS", "hdfs://localhost:9000");
+        conf.setBoolean("orc.overwrite.output.file", true);
+
+        TypeDescription schema = TypeDescription.fromString("struct<uuid:string,visit_no:bigint,meta:binary>");
+        OrcFile.WriterOptions wo = OrcFile.writerOptions(conf)
+                .setSchema(schema);
 
         try(KafkaConsumer<String, String> kafkaConsumer = initializeKafka(KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP_ID );
             Jedis jedis = new Jedis(REDIS_ADDR, REDIS_PORT);
             CqlSession session = CqlSession.builder()
                     .withKeyspace("test")
                     .withLocalDatacenter("my-datacenter-1")
-                    .build()){
+                    .build();
+            ){
+            Writer writer = OrcFile.createWriter(new Path("hdfs://localhost:9000/perday/temp.orc"),
+                    wo);
+            VectorizedRowBatch batch = schema.createRowBatch();
+            BytesColumnVector uuid = (BytesColumnVector) batch.cols[0];
+            LongColumnVector visit_no = (LongColumnVector) batch.cols[1];
+            BytesColumnVector meta = (BytesColumnVector) batch.cols[2];
+
             prepareStatements(session);
-//            kafkaConsumer.assign(Collections.singletonList(new TopicPartition(KAFKA_TOPIC, KAFKA_PARTITION)));
             log.info("[*] Connected to all clients...");
             long atTheMomemtUuidsLength = jedis.llen("uuids");
 
             for(long i = 0;i<atTheMomemtUuidsLength;i++){
                 List<String> keys = jedis.lrange("uuids", 0, 0);
                 for (String key : keys){
-                    count+=processUser(kafkaConsumer,jedis,session, key);
+                    count+=processUser(jedis, writer, session, key, batch, uuid, visit_no, meta);
                     jedis.ltrim("uuids", 1, -1);
-//                    log.info("[trim] After trim length is {} of i {}.",jedis.llen("uuids"), i);
-//                    log.info("[-] user with key {} has beed removed.",key);
                 }
             }
             log.info("Total updated user {}.", count);
             log.info("Total no. of users current moment {}", atTheMomemtUuidsLength);
+            System.out.println(count);
+            // Closing Orc Writer
+            writer.close();
+            System.out.println("Writer closed");
+
+//            if(count>0) {
+                conf.set("fs.defaultFS", "hdfs://localhost:9000");
+                FileSystem fileSystem = FileSystem.get(conf);
+                Path fileName = new Path("hdfs://localhost:9000/perday/appendable-records-" + UUID.randomUUID() + ".orc");
+                fileSystem.rename(new Path("hdfs://localhost:9000/perday/temp.orc"), fileName);
+                fileSystem.close();
+//            }
+
+            // Commiting to Kafka after closing writer
+            if(kafkaOffset!=-1)
+                commitToKafka(kafkaConsumer);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

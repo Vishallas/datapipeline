@@ -7,7 +7,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.io.File;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -61,12 +60,12 @@ public class DataProcessor {
         }
     }
 
-    private class Batch{
+    private class Session {
         private String uuid;
         private String firstEventTime;
         private JSONArray session = null;
 
-        Batch(String uuid){
+        Session(String uuid){
             this.setUuid(uuid);
         }
 
@@ -149,17 +148,17 @@ public class DataProcessor {
     private int processUsers(KafkaProducer<String, String> kafkaProducer, String TOPIC, Iterator<Event> users, long userCount) throws ParseException {
         Date previousEventTime = null;
 
-        Batch batch = null;
+        Session batch = null;
         int session = 0;
         while(users.hasNext()){
             Event event = users.next();
             Date currentEventTime = sdf1.parse(event.getTime());
             if(previousEventTime == null){
-                batch = new Batch(event.getUuid());
+                batch = new Session(event.getUuid());
             }else if(currentEventTime.getTime() - previousEventTime.getTime() > TIMEOUT){
                 session++;
                 sendToKafka(kafkaProducer, TOPIC, batch.getJsonString());
-                batch = new Batch(event.getUuid());
+                batch = new Session(event.getUuid());
             }
             batch.addMeta(event);
             previousEventTime = currentEventTime;
@@ -211,7 +210,7 @@ public class DataProcessor {
                         // For first line
                         if (users != null) {
                             totalUsers++;
-                            offset+=processUsers(kafkaProducer, TOPIC, users.iterator(), totalUsers); //processing users
+                            offset += processUsers(kafkaProducer, TOPIC, users.iterator(), totalUsers); //processing users
                         }
                         // Common
                         uuid = data.getUuid();
@@ -222,7 +221,7 @@ public class DataProcessor {
                 // remaining users
                 if(!users.isEmpty()){
                     totalUsers++;
-                    offset+=processUsers(kafkaProducer, TOPIC, users.iterator(), totalUsers); // Processign users
+                    offset += processUsers(kafkaProducer, TOPIC, users.iterator(), totalUsers); // Processign users
                 }
                 log.info("[total] Users count = {} with practical offset {}", totalUsers, offset);
             }

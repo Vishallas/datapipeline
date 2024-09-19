@@ -1,88 +1,60 @@
 package org.example;
 
-import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.cql.PreparedStatement;
-import com.datastax.oss.driver.api.core.cql.Row;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
+import org.apache.orc.OrcFile;
 
-import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
-
-
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 
 public class Main {
     static SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private static void sendBlob(int id){
 
-//        JSONObject jsonObject = new JSONObject();
-//        jsonObject.put("name", "vishal");
-//
-//        String data = jsonObject.toString();
+    private static void moveFile(FileSystem fs, Path path) throws IOException {
+        long MAX_AVG_FILE_SIZE = 1024L;
+        String finalPath = "/final/";
+        long fileLength = fs.getFileStatus(path).getLen();
+        if(fileLength>MAX_AVG_FILE_SIZE)
+            fs.rename(path, new Path(finalPath+path.getName()));
+    }
 
-        try(CqlSession session = CqlSession.builder()
-                .withKeyspace("test")
-                .withLocalDatacenter("my-datacenter-1")
-                .build()) {
+    private static void compaction() throws IOException {
+        Configuration conf = new Configuration();
+        String avgPath = "/avg/";
 
-            PreparedStatement preparedStatement = session.prepare(
-                    QueryBuilder.insertInto("Appendable")
+        String crachedFilePath = "hdfs://localhost:9000/perday/temp.orc";
+        conf.set("fs.defaultFS", "hdfs://localhost:9000");
+        FileSystem fs = FileSystem.get(conf);
+        List<Path> filePaths = new ArrayList<>();
+        FileStatus[] fileStatuses = fs.listStatus(new Path("/perday"));
+        for(FileStatus fileStatus : fileStatuses){
+            if(fileStatus.getPath().toString().equals(crachedFilePath)){
+                System.out.println("Has a corrupted file");
+                continue;
+            }
+            filePaths.add(fileStatus.getPath());
+            System.out.println(fileStatus.getPath());
+        }
+        Path mergedFile = new Path(avgPath+ UUID.randomUUID()+".orc");
+        OrcFile.mergeFiles(mergedFile, OrcFile.writerOptions(conf), filePaths);
+        moveFile(fs, mergedFile);
 
-                            .value("uuid", QueryBuilder.bindMarker())
-                            .value("visit_count", QueryBuilder.bindMarker())
-                            .value("first_visit", QueryBuilder.bindMarker())
-                            .value("last_visit", QueryBuilder.bindMarker())
-                            .build()
-            );
-            String firstVisit = "2024-09-09 12:25:44";
-            String lastVisit = "2024-09-09 12:29:22";
-
-            Instant first = sdf1.parse(firstVisit).toInstant();
-            Instant last = sdf1.parse(lastVisit).toInstant();
-
-            session.execute(preparedStatement.bind("13lk23kljlkj", 1L , first, last));
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
+        for(Path path: filePaths){
+            fs.delete(path, true);
         }
     }
-    private static void getJson(){
-        try(CqlSession session = CqlSession.builder()
-                .withKeyspace("test")
-                .withLocalDatacenter("my-datacenter-1")
-                .build()) {
 
-            PreparedStatement preparedStatement = session.prepare(
-                    QueryBuilder.selectFrom("appendable")
-                            .column("last_visit")
-                            .whereColumn("uuid")
-                            .isEqualTo(QueryBuilder.bindMarker())
-                            .build()
-            );
-            Row row = session.execute(preparedStatement.bind("13lk23kljlkj")).one();
-            System.out.println(row.getInstant("last_visit").atZone(ZoneId.of("Asia/Kolkata")).toString());
-        }
-    }
-    private static void checkResultRest(){
-        CqlSession cqlSession = CqlSession.builder()
-                .withKeyspace("test")
-                .withLocalDatacenter("my-datacenter-1")
-                .build();
-        PreparedStatement getLastDataOfUser = cqlSession.prepare(
-                QueryBuilder.selectFrom("insertable")
-                        .columns("visit_count", "last_visit")
-                        .whereColumn("uuid")
-                        .isEqualTo(QueryBuilder.bindMarker("uuid"))
-                        .build());
-        Row rs = cqlSession.execute(getLastDataOfUser.bind("3933dec6-ee27-90a8-e775-9e04459c4251")).one();
-        System.out.println(rs == null);
-    }
-    public static void main(String[] args) throws ParseException {
-//        sendBlob(1);
-//        getJson();
-//        checkResultRest();
+    public static void main(String[] args) throws ParseException, IOException {
         DataProcessorUtil dp = new DataProcessorUtil();
-        dp.run();
+//        dp.run();
+        compaction();
     }
 }
