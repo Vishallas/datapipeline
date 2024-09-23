@@ -29,6 +29,7 @@ import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -63,8 +64,8 @@ public class DataProcessorUtil {
 
 
         }
-        public long getOffset() {
-            return offset;
+        public String getMeta(){
+            return metas.toString();
         }
         public ByteBuffer getEventsBlob() {
             return ByteBuffer.wrap(metas.toString().getBytes());
@@ -168,9 +169,10 @@ public class DataProcessorUtil {
 
 
                     int row = orcBatch.size++;
-                    orcUuid.vector[row] = uuid.getBytes();
+                    orcUuid.setVal(row, uuid.getBytes(StandardCharsets.UTF_8));
+//                    System.out.println(uuid);
                     orcVisit_no.vector[row] = localVisitCount;
-                    orcMeta.vector[row] = session.getEventsBlob().array();
+                    orcMeta.setVal(row, session.getEventsBlob().array());
 
                     if (orcBatch.size == orcBatch.getMaxSize()) {
                         orcWriter.addRowBatch(orcBatch); // Writing to memory
@@ -259,7 +261,8 @@ public class DataProcessorUtil {
                     .withLocalDatacenter("my-datacenter-1")
                     .build();
             ){
-            Writer writer = OrcFile.createWriter(new Path("hdfs://localhost:9000/perday/temp.orc"),
+            String orcPath = "hdfs://localhost:9000/perday/temp.orc";
+            Writer writer = OrcFile.createWriter(new Path(orcPath),
                     wo);
             VectorizedRowBatch batch = schema.createRowBatch();
             BytesColumnVector uuid = (BytesColumnVector) batch.cols[0];
@@ -284,13 +287,13 @@ public class DataProcessorUtil {
             writer.close();
             System.out.println("Writer closed");
 
-//            if(count>0) {
+            if(count>0) {
                 conf.set("fs.defaultFS", "hdfs://localhost:9000");
                 FileSystem fileSystem = FileSystem.get(conf);
                 Path fileName = new Path("hdfs://localhost:9000/perday/appendable-records-" + UUID.randomUUID() + ".orc");
                 fileSystem.rename(new Path("hdfs://localhost:9000/perday/temp.orc"), fileName);
                 fileSystem.close();
-//            }
+            }
 
             // Commiting to Kafka after closing writer
             if(kafkaOffset!=-1)

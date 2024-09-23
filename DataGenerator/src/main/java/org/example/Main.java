@@ -15,7 +15,7 @@ public class Main {
     public static void main(String[] args) throws  Exception{
 
         createFile();
-        String fileName = "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataGenerator/rawData1.csv";
+        String fileName = "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataGenerator/rawData.csv";
         DataProcessor dataProcessor = new DataProcessor();
         dataProcessor.processFile(fileName);
     }
