@@ -6,12 +6,14 @@ import com.datastax.oss.driver.api.core.cql.*;
 
 import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
 import com.datastax.oss.driver.api.querybuilder.update.Assignment;
+import org.apache.avro.data.Json;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.ql.exec.vector.BytesColumnVector;
 import org.apache.hadoop.hive.ql.exec.vector.LongColumnVector;
 import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
+import org.apache.hadoop.yarn.webapp.hamlet.Hamlet;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
@@ -64,8 +66,8 @@ public class DataProcessorUtil {
 
 
         }
-        public String getMeta(){
-            return metas.toString();
+        public JSONArray getMeta(){
+            return metas;
         }
         public ByteBuffer getEventsBlob() {
             return ByteBuffer.wrap(metas.toString().getBytes());
@@ -167,20 +169,17 @@ public class DataProcessorUtil {
                     localVisitCount++;
                     localLastVisit = session.firstEventTime;
 
-
-                    int row = orcBatch.size++;
-                    orcUuid.setVal(row, uuid.getBytes(StandardCharsets.UTF_8));
-//                    System.out.println(uuid);
-                    orcVisit_no.vector[row] = localVisitCount;
-                    orcMeta.setVal(row, session.getEventsBlob().array());
-
-                    if (orcBatch.size == orcBatch.getMaxSize()) {
-                        orcWriter.addRowBatch(orcBatch); // Writing to memory
-                        orcBatch.reset(); // resetting the Vector batch to empty
+                    JSONArray events = session.getMeta();
+                    for(Object event: events){
+                        int row = orcBatch.size++;
+                        orcUuid.setVal(row, uuid.getBytes(StandardCharsets.UTF_8));
+                        orcVisit_no.vector[row] = localVisitCount;
+                        orcMeta.setVal(row, ((JSONObject)event).toString().getBytes(StandardCharsets.UTF_8));
+                        if (orcBatch.size == orcBatch.getMaxSize()) {
+                            orcWriter.addRowBatch(orcBatch); // Writing to memory
+                            orcBatch.reset(); // resetting the Vector batch to empty
+                        }
                     }
-
-//                    batchStatementBuilder = batchStatementBuilder.
-//                            addStatement(insertIntoAppendable.bind(uuid, localVisitCount, session.getEventsBlob()));
                 }
                 kafkaOffset = session.offset;
             }
@@ -196,17 +195,6 @@ public class DataProcessorUtil {
                         .addStatement(updateInsertable.bind(localVisitCount, localLastVisit, uuid))
                         .build());
             }
-
-            // Commit to kafka per User
-//            if(offset != -1) {
-//                Map<TopicPartition, OffsetAndMetadata> commitOffset = new HashMap<>();
-//
-//                TopicPartition topicPartition = new TopicPartition(TOPIC, PARTITION);
-//                OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(offset);
-//                commitOffset.put(topicPartition, offsetAndMetadata);
-//
-//                kafkaConsumer.commitSync(commitOffset);
-//            }
 
 //             Cache remove as of processed
              jedis.ltrim(key,1, -1);
@@ -250,7 +238,7 @@ public class DataProcessorUtil {
 //        conf.set("fs.defaultFS", "hdfs://localhost:9000");
         conf.setBoolean("orc.overwrite.output.file", true);
 
-        TypeDescription schema = TypeDescription.fromString("struct<uuid:string,visit_no:bigint,meta:binary>");
+        TypeDescription schema = TypeDescription.fromString("struct<uuid:string,visit_no:bigint,meta:string>"); //Changed
         OrcFile.WriterOptions wo = OrcFile.writerOptions(conf)
                 .setSchema(schema);
 

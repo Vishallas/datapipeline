@@ -92,7 +92,7 @@ public class Main {
     public static void main(String[] args) throws ParseException, IOException {
         DataProcessorUtil dp = new DataProcessorUtil();
 //        readOrcFile();
-//        dp.run();
-        compaction();
+        dp.run();
+//        compaction();
     }
 }
