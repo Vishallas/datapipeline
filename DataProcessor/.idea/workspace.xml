@@ -7,7 +7,6 @@
     <list default="true" id="47ef0ead-4cd7-4906-ae51-08acf85c4e9a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataCaching/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../DataGenerator/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../DataGenerator/rawData1.csv" beforeDir="false" afterPath="$PROJECT_DIR$/../DataGenerator/rawData1.csv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

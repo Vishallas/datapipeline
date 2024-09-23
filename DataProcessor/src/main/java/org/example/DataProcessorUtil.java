@@ -6,12 +6,14 @@ import com.datastax.oss.driver.api.core.cql.*;
 
 import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
 import com.datastax.oss.driver.api.querybuilder.update.Assignment;
+import com.google.gson.JsonObject;
 import org.apache.avro.data.Json;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.ql.exec.vector.BytesColumnVector;
 import org.apache.hadoop.hive.ql.exec.vector.LongColumnVector;
+import org.apache.hadoop.hive.ql.exec.vector.TimestampColumnVector;
 import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
 import org.apache.hadoop.yarn.webapp.hamlet.Hamlet;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -32,6 +34,7 @@ import redis.clients.jedis.Jedis;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -130,7 +133,7 @@ public class DataProcessorUtil {
 
     private int processUser(Jedis jedis, Writer orcWriter, CqlSession cqlSession,
                             String key, VectorizedRowBatch orcBatch, BytesColumnVector orcUuid,
-                            LongColumnVector orcVisit_no, BytesColumnVector orcMeta) throws ParseException, IOException {
+                            LongColumnVector orcVisit_no, BytesColumnVector orcURL, TimestampColumnVector orcEventTime) throws ParseException, IOException {
         final int BATCH_SIZE = 5;
         long totalSessions = jedis.llen(key);
         String uuid = key.substring(5);
@@ -174,7 +177,12 @@ public class DataProcessorUtil {
                         int row = orcBatch.size++;
                         orcUuid.setVal(row, uuid.getBytes(StandardCharsets.UTF_8));
                         orcVisit_no.vector[row] = localVisitCount;
-                        orcMeta.setVal(row, ((JSONObject)event).toString().getBytes(StandardCharsets.UTF_8));
+
+                        JSONObject jsonEvent = (JSONObject)event;
+
+                        orcURL.setVal(row, jsonEvent.get("url").toString().getBytes(StandardCharsets.UTF_8));
+                        orcEventTime.set(row, Timestamp.valueOf(jsonEvent.get("time").toString()));
+
                         if (orcBatch.size == orcBatch.getMaxSize()) {
                             orcWriter.addRowBatch(orcBatch); // Writing to memory
                             orcBatch.reset(); // resetting the Vector batch to empty
@@ -238,7 +246,7 @@ public class DataProcessorUtil {
 //        conf.set("fs.defaultFS", "hdfs://localhost:9000");
         conf.setBoolean("orc.overwrite.output.file", true);
 
-        TypeDescription schema = TypeDescription.fromString("struct<uuid:string,visit_no:bigint,meta:string>"); //Changed
+        TypeDescription schema = TypeDescription.fromString("struct<uuid:string,visit_no:bigint,url:string,eventtime:timestamp>"); //Changed
         OrcFile.WriterOptions wo = OrcFile.writerOptions(conf)
                 .setSchema(schema);
 
@@ -255,7 +263,8 @@ public class DataProcessorUtil {
             VectorizedRowBatch batch = schema.createRowBatch();
             BytesColumnVector uuid = (BytesColumnVector) batch.cols[0];
             LongColumnVector visit_no = (LongColumnVector) batch.cols[1];
-            BytesColumnVector meta = (BytesColumnVector) batch.cols[2];
+            BytesColumnVector url = (BytesColumnVector) batch.cols[2];
+            TimestampColumnVector eventTime = (TimestampColumnVector)batch.cols[3];
 
             prepareStatements(session);
             log.info("[*] Connected to all clients...");
@@ -264,7 +273,7 @@ public class DataProcessorUtil {
             for(long i = 0;i<atTheMomemtUuidsLength;i++){
                 List<String> keys = jedis.lrange("uuids", 0, 0);
                 for (String key : keys){
-                    count+=processUser(jedis, writer, session, key, batch, uuid, visit_no, meta);
+                    count+=processUser(jedis, writer, session, key, batch, uuid, visit_no, url, eventTime);
                     jedis.ltrim("uuids", 1, -1);
                 }
             }
