@@ -302,12 +302,12 @@ public class Main {
         finishFileWriting();
     }
     public static void main(String[] args) throws ParseException, IOException {
-//        DataProcessorUtil dp = new DataProcessorUtil();
+        DataProcessorUtil dp = new DataProcessorUtil();
 
-//        dp.run();
+        dp.run();
 //        compaction();
 //        uploadFile();
-        start();
+//        start();
 //        readOrcFile();
     }
 }

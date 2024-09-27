@@ -9,6 +9,7 @@ import com.datastax.oss.driver.api.querybuilder.update.Assignment;
 import com.google.gson.JsonObject;
 import org.apache.avro.data.Json;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.ql.exec.vector.BytesColumnVector;
@@ -39,6 +40,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 
@@ -128,12 +131,152 @@ public class DataProcessorUtil {
                         .build());
     }
 
+    private void finishFileWriting() throws IOException {
+        Path initFilePath = new Path(String.format(baseFileFormaterString,
+                yearColumnName,
+                previousYear,
+                monthColumnName,
+                previousMonth,
+                initFileName));
 
+        Path tempFilePath = new Path(String.format(baseFileFormaterString,
+                yearColumnName,
+                previousYear,
+                monthColumnName,
+                previousMonth,
+                "temp.orc"));
 
+        FileStatus fileStatus = fileSystem.getFileStatus(tempFilePath);
 
-    private int processUser(Jedis jedis, Writer orcWriter, CqlSession cqlSession,
-                            String key, VectorizedRowBatch orcBatch, BytesColumnVector orcUuid,
-                            LongColumnVector orcVisit_no, BytesColumnVector orcURL, TimestampColumnVector orcEventTime) throws ParseException, IOException {
+        if(fileStatus.getLen() > MAX_FILE_SIZE){
+            System.out.println("Renaming file....");
+            Path randFilePath = new Path(String.format(baseFileFormaterString,
+                    yearColumnName,
+                    previousYear,
+                    monthColumnName,
+                    previousMonth,
+                    "appendable-records-" + UUID.randomUUID() + ".orc"));
+            fileSystem.rename(tempFilePath, randFilePath);
+
+            if(fileSystem.exists(initFilePath)) // Checking for .init file
+                fileSystem.rename(initFilePath,tempFilePath);
+            fileSystem.close();
+        }else {
+
+            if(fileSystem.exists(initFilePath)) {
+                Path mergeFilePath = new Path(String.format(baseFileFormaterString,
+                        yearColumnName,
+                        previousYear,
+                        monthColumnName,
+                        previousMonth,
+                        ".temp.orc"));
+                OrcFile.mergeFiles(mergeFilePath,
+                        writerOptions,
+                        new ArrayList<Path>() {
+                            {
+                                add(tempFilePath);
+                                add(initFilePath);
+                            }
+                        }
+                );
+                System.out.println(String.format("Mergining files"));
+                fileSystem.delete(tempFilePath);
+                fileSystem.delete(initFilePath);
+                fileSystem.rename(mergeFilePath, tempFilePath);
+                fileSystem.close();
+            }
+        }
+    }
+
+    private void writeToVectorBatch(String uuid, long localVisitCount, String url, String eventTime) throws IOException {
+        int row = orcBatch.size++;
+        orcUuid.setVal(row, uuid.getBytes(StandardCharsets.UTF_8));
+
+        orcVisit_no.vector[row] = localVisitCount;
+
+        orcUrl.setVal(row, url.getBytes(StandardCharsets.UTF_8));
+        orcEventTime.set(row, Timestamp.valueOf(eventTime));
+
+        if (orcBatch.size == orcBatch.getMaxSize()) {
+            writer.addRowBatch(orcBatch); // Writing to memory
+            orcBatch.reset(); // resetting the Vector batch to empty
+        }
+    }
+
+    private void uploadFile(String uuid, long localVisitCount, String url, String eventTime) throws IOException {
+        LocalDateTime dt = LocalDateTime.parse(eventTime, formatter);
+        int currentMonth = dt.getMonthValue();
+        int currentYear = dt.getYear();
+
+        if(previousMonth != 0 && previousYear != 0){
+            if(previousYear == currentYear && previousMonth == currentMonth){
+                System.out.println("Writing to already existing file.."+"year="+previousYear+" month="+previousMonth);
+                writeToVectorBatch(uuid, localVisitCount, url, eventTime);
+            }else {
+                System.out.println("Writing to new directory.."+"year="+currentYear+" month="+currentMonth);
+                writer.addRowBatch(orcBatch); // Writing to memory
+                orcBatch.reset(); // Reset Batch
+                writer.close(); // Flush previous data to writer
+                finishFileWriting(); // Handle merge to temp
+
+                Path tempFolderPath = new Path(String.format(baseFolderFormaterString,
+                        yearColumnName,
+                        currentYear,
+                        monthColumnName,
+                        currentMonth));
+
+                fileSystem.mkdirs(tempFolderPath); // Creating Folder
+
+                //  If already has file write to initFile
+                String fileName = null;
+                if(fileSystem.exists(new Path(tempFolderPath, "temp.orc"))){
+                    fileName = initFileName;
+                    System.out.println("temp already found... at year="+previousYear+"month="+previousMonth);
+                }else{
+                    fileName = "temp.orc";
+                }
+//                String fileName = !folderCreated && fileSystem.exists(new Path(tempFolderPath, "temp.orc")) ? initFileName : "temp.orc";
+                if(fileName == initFileName)
+                    System.out.println("Found one");
+                Path newPath = new Path(String.format(baseFileFormaterString, yearColumnName, currentYear, monthColumnName, currentMonth, fileName));
+
+                writer = OrcFile.createWriter(newPath, writerOptions); // Create New Writer
+
+                writeToVectorBatch(uuid, localVisitCount, url, eventTime);
+
+            }
+        }else {
+
+            System.out.println("Creating new file..."+"year="+currentYear+" month="+currentMonth);
+            Path tempFolderPath = new Path(String.format(baseFolderFormaterString,
+                    yearColumnName,
+                    currentYear,
+                    monthColumnName,
+                    currentMonth));
+
+            fileSystem.mkdirs(tempFolderPath); // Create Directories
+
+            //  If already has file write to initFile
+            String fileName = null;
+            if(fileSystem.exists(new Path(tempFolderPath, "temp.orc"))){
+                fileName = initFileName;
+                System.out.println("temp already found... at year="+previousYear+"month="+previousMonth);
+            }else{
+                fileName = "temp.orc";
+            }
+            Path newPath = new Path(String.format(baseFileFormaterString, yearColumnName, currentYear, monthColumnName, currentMonth, fileName));
+
+            writer = OrcFile.createWriter(newPath, writerOptions); // Create New Writer
+
+            writeToVectorBatch(uuid, localVisitCount, url, eventTime);
+        }
+        previousMonth = currentMonth;
+        previousYear = currentYear;
+    }
+
+    private int processUser(Jedis jedis, CqlSession cqlSession,
+                            String key) throws ParseException, IOException {
+
         final int BATCH_SIZE = 5;
         long totalSessions = jedis.llen(key);
         String uuid = key.substring(5);
@@ -174,19 +317,10 @@ public class DataProcessorUtil {
 
                     JSONArray events = session.getMeta();
                     for(Object event: events){
-                        int row = orcBatch.size++;
-                        orcUuid.setVal(row, uuid.getBytes(StandardCharsets.UTF_8));
-                        orcVisit_no.vector[row] = localVisitCount;
-
-                        JSONObject jsonEvent = (JSONObject)event;
-
-                        orcURL.setVal(row, jsonEvent.get("url").toString().getBytes(StandardCharsets.UTF_8));
-                        orcEventTime.set(row, Timestamp.valueOf(jsonEvent.get("time").toString()));
-
-                        if (orcBatch.size == orcBatch.getMaxSize()) {
-                            orcWriter.addRowBatch(orcBatch); // Writing to memory
-                            orcBatch.reset(); // resetting the Vector batch to empty
-                        }
+                        JSONObject obj = (JSONObject)event;
+                        String url = obj.getString("url");
+                        String eventTime = obj.getString("time");
+                        uploadFile(uuid, localVisitCount, url, eventTime);
                     }
                 }
                 kafkaOffset = session.offset;
@@ -205,7 +339,7 @@ public class DataProcessorUtil {
             }
 
 //             Cache remove as of processed
-             jedis.ltrim(key,1, -1);
+            jedis.ltrim(key,1, -1);
         }
 
         return userCount;
@@ -225,16 +359,28 @@ public class DataProcessorUtil {
         System.out.println("offsetCommited");
     }
 
-    private void processFilesPerday() throws IOException {
-        Configuration conf = new Configuration();
+    private Writer writer = null;
+    private int previousMonth = 0;
+    private int previousYear = 0;
+    private final String yearColumnName = "year";
+    private final String monthColumnName = "month";
+    private final String initFileName = "tmpData";
+    private final String baseFileFormaterString = "/mainFolder/%s=%d/%s=%d/%s";
+    private final String baseFolderFormaterString = "/mainFolder/%s=%d/%s=%d/";
+    private final long MAX_FILE_SIZE = 10 * 1024 * 1024L;
 
-        conf.set("fs.defaultFS", "hdfs://localhost:9000");
-        FileSystem fileSystem = FileSystem.get(conf);
-//        fileSystem.
+    private VectorizedRowBatch orcBatch;
+    private BytesColumnVector orcUuid;
+    private LongColumnVector orcVisit_no;
+    private BytesColumnVector orcUrl;
+    private TimestampColumnVector orcEventTime;
+    private FileSystem fileSystem;
 
-    }
+    private OrcFile.WriterOptions writerOptions;
 
-    public void run() throws ParseException {
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    public void run() throws ParseException, IOException {
         final String REDIS_ADDR = "localhost";
         final int REDIS_PORT = 6379;
         int count = 0;
@@ -243,11 +389,12 @@ public class DataProcessorUtil {
         final String KAFKA_BOOTSTRAP_SERVERS = "localhost:29092,localhost:39092";
 
         Configuration conf = new Configuration();
-//        conf.set("fs.defaultFS", "hdfs://localhost:9000");
+        conf.set("fs.defaultFS", "hdfs://localhost:9000");
         conf.setBoolean("orc.overwrite.output.file", true);
+        fileSystem = FileSystem.get(conf);
 
         TypeDescription schema = TypeDescription.fromString("struct<uuid:string,visit_no:bigint,url:string,eventtime:timestamp>"); //Changed
-        OrcFile.WriterOptions wo = OrcFile.writerOptions(conf)
+        writerOptions = OrcFile.writerOptions(conf)
                 .setSchema(schema);
 
         try(KafkaConsumer<String, String> kafkaConsumer = initializeKafka(KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP_ID );
@@ -257,14 +404,12 @@ public class DataProcessorUtil {
                     .withLocalDatacenter("my-datacenter-1")
                     .build();
             ){
-            String orcPath = "hdfs://localhost:9000/perday/temp.orc";
-            Writer writer = OrcFile.createWriter(new Path(orcPath),
-                    wo);
-            VectorizedRowBatch batch = schema.createRowBatch();
-            BytesColumnVector uuid = (BytesColumnVector) batch.cols[0];
-            LongColumnVector visit_no = (LongColumnVector) batch.cols[1];
-            BytesColumnVector url = (BytesColumnVector) batch.cols[2];
-            TimestampColumnVector eventTime = (TimestampColumnVector)batch.cols[3];
+
+            orcBatch = schema.createRowBatch();
+            orcUuid = (BytesColumnVector) orcBatch.cols[0];
+            orcVisit_no = (LongColumnVector) orcBatch.cols[1];
+            orcUrl = (BytesColumnVector) orcBatch.cols[2];
+            orcEventTime = (TimestampColumnVector)orcBatch.cols[3];
 
             prepareStatements(session);
             log.info("[*] Connected to all clients...");
@@ -273,7 +418,7 @@ public class DataProcessorUtil {
             for(long i = 0;i<atTheMomemtUuidsLength;i++){
                 List<String> keys = jedis.lrange("uuids", 0, 0);
                 for (String key : keys){
-                    count+=processUser(jedis, writer, session, key, batch, uuid, visit_no, url, eventTime);
+                    count+=processUser(jedis, session, key);
                     jedis.ltrim("uuids", 1, -1);
                 }
             }
@@ -285,11 +430,7 @@ public class DataProcessorUtil {
             System.out.println("Writer closed");
 
             if(count>0) {
-                conf.set("fs.defaultFS", "hdfs://localhost:9000");
-                FileSystem fileSystem = FileSystem.get(conf);
-                Path fileName = new Path("hdfs://localhost:9000/perday/appendable-records-" + UUID.randomUUID() + ".orc");
-                fileSystem.rename(new Path("hdfs://localhost:9000/perday/temp.orc"), fileName);
-                fileSystem.close();
+                finishFileWriting();
             }
 
             // Commiting to Kafka after closing writer

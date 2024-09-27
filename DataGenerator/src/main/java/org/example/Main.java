@@ -14,9 +14,11 @@ public class Main {
 
     public static void main(String[] args) throws  Exception{
 
-        createFile();
+//        createFile();
         String fileName = "/home/vishal-pt7653/Documents/Project-assignment/datapipeline/DataGenerator/rawData.csv";
         DataProcessor dataProcessor = new DataProcessor();
-        dataProcessor.processFile(fileName);
+//        dataProcessor.processFile(fileName);
+        System.out.println(dataProcessor.md5UUID("180.0.0.0","Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML)"));
+
     }
 }

@@ -108,7 +108,7 @@ public class DataProcessor {
 
     }
 
-    private String md5UUID(String ip, String userAgent){
+    public String md5UUID(String ip, String userAgent){
 
         String input = ip+userAgent;
         byte[] hashBytes = md.digest(input.getBytes());
